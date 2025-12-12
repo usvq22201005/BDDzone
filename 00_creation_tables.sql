@@ -10,8 +10,7 @@ create table client(
     Pays varchar(15),
     aLocal number(1),
 
-    constraint PK_Client primary key (ClientId)
-    -- on evite les doublons...
+    constraint PK_Client primary key (ClientId) -- on evite les doublons...
 );
 -- 2.	Produit (ProduitId, FournisseurId, CategorieId,
 -- SousCategorieId, Nom, Prix, NoteProduit) 
@@ -24,6 +23,8 @@ create table Produit (
     Prix number(10,2),  -- Valeur max=99999999.99
     NoteProduit number(2),
     constraint PK_Produit primary key (ProduitId)
+
+    
 );
 --3.	Commande (CommandeId, ClientId, 
 --DateCommande, PrixTotal)
