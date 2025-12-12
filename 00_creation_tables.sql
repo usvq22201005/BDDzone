@@ -30,7 +30,7 @@ create table Commande(
 --4.	ProduitCommande (CommandeId, ProduitId,
 --Quantite, Prix) 
 create table ProduitCommande(
-        ClientId number(5),
+        CommandeId number(5),
         ProduitId number(6),
         Quantite number(5),
         Prix number(4)
