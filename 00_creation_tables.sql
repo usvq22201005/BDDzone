@@ -4,7 +4,7 @@
 create table client(
     ClientId number(5),
     NomUtilisateur varchar(50),
-    Nom varchar(50)
+    Nom varchar(50),
     Prenom varchar(50),
     Adresse varchar(50),
     Pays varchar(15),
@@ -24,7 +24,7 @@ create table Produit (
 create table Commande(
     CommandeId number (5),
     ClientId number(5),
-    DateCommande DATE
+    DateCommande DATE,
     PrixTotal(4)
 );
 --4.	ProduitCommande (CommandeId, ProduitId,
@@ -35,8 +35,8 @@ create table ProduitCommande(
         Quantite number(5),
         Prix number(4)
 );  
---5.	Panier (ClientId, ProduitId, Quantite, Prix) 
-create table Panier(
+--5.	SouhaiteAcheter (ClientId, ProduitId, Quantite, Prix) 
+create table SouhaiteAcheter(
     ClientId number(5),
     ProduitId number(6),
     Quantite number(5),
@@ -104,5 +104,5 @@ create table Recommandation (
 --15.	RecommandationProduit (RecommandationId, ProduitId)
 create table RecommandationProduit(
     RecommandationId number(10), 
-    ProduitId number(6),
+    ProduitId number(6)
 );
