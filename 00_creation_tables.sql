@@ -24,7 +24,7 @@ create table Produit (
     NoteProduit number(2),
     constraint PK_Produit primary key (ProduitId)
 
-    
+
 );
 --3.	Commande (CommandeId, ClientId, 
 --DateCommande, PrixTotal)
@@ -73,13 +73,21 @@ create table Categorie(
     Nom varchar(20),
     DateAjout DATE
 );
+
 --9.	SousCategorie (SousCategorieId, CategorieId, Nom, DateAjout) 
 create table SousCategorie(
     SousCategorieId number(5),
-    CategorieId number(5),
+    
+    -- !!! Schéma relationnel faux
+    CategorieId number(5), 
+    -- colonne CategorieId inutile ? Relation stockée
+    -- dans CSC...
     Nom varchar(20),
     DateAjout DATE,
     constraint PK_SousCategorie primary key (SousCategorieId)
+
+
+    
 );
 --!!!!!! Ajout
 --10.	CategorieSousCategorie (CSCId, CategorieId, SousCategorieId)
