@@ -68,6 +68,7 @@ create table SousCategorie(
     Nom varchar(20),
     DateAjout DATE
 );
+--!!!!!! Ajout
 --10.	CategorieSousCategorie (CSCId, CategorieId, SousCategorieId)
 create table CategorieSousCategorie(
     CSCId number(5),
