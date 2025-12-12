@@ -2,12 +2,12 @@
 -- Adresse, Pays, Local) 
 
 create table client(
-    ClientId number 5,
+    ClientId number(5),
     NomUtilisateur varchar(50),
     Prenom varchar(50),
     Adresse varchar(50),
     Pays varchar(15),
-    aLocal number 1
+    aLocal number(1)
 );
 -- 2.	Produit (ProduitId, FournisseurId, CategorieId,
 -- SousCategorieId, Nom, Prix, NoteProduit) 
@@ -48,7 +48,7 @@ create table (FournisseurId,
 --7.	Pays (NomPays, ProduitId) 
 create table Pays (
      NomPays varchar(20),
-     ProduitId number(2)
+     ProduitId number(6)
      )
 --8.	Categorie (CategorieId, Nom, DateAjout) 
 create table Categorie(
@@ -71,13 +71,32 @@ create table CategorieSousCategorie(
 )
 --11.	CentreDInteret (ClientId, CSCId)  
 create table CentreDInteret(
-    ClientId,
-    CSCId
+    ClientId number(5),
+    CSCId number(5)
     )
 --12.	Favori (ClientId, CSCId)
-
+create table Favori(
+    ClientId number(5), 
+    CSCId number(5)
+)
 --13.	NoteProduit (ClientId, ProduitId, Note) 
+create table NoteProduit(
+    ClientId number(5),
+    ProduitId number(6),
+    Note number(2)
+)
+
 
 --14.	Recommandation (RecommandationId, ClientId, CSCId, DateHeure)
+create table Recommandation (
+    RecommandationId number(10),
+    ClientId number(5), 
+    CSCId number(5),
+    DateHeure DATE
+)
 
 --15.	RecommandationProduit (RecommandationId, ProduitId)
+create table RecommandationProduit(
+    RecommandationId number(10), 
+    ProduitId number(6),
+)
