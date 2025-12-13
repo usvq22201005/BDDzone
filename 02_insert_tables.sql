@@ -22,8 +22,8 @@ insert into SousCategorie(SousCategorieId,Nom,DateAjout) values (1, 'PC Portable
 insert into SousCategorie(SousCategorieId,Nom,DateAjout) values (2, 'Casque', sysdate);
 
 -- 2️⃣ Lien catégorie ↔ sous-catégorie (CSC = vérité)
-insert into CategorieSousCategorie values (1, 1, 1); -- Informatique / PC
-insert into CategorieSousCategorie values (2, 2, 2); -- Audio / Casque
+insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId) values (1, 1, 1); -- Informatique / PC
+insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId) values (2, 2, 2); -- Audio / Casque
 
 -- 3️⃣ Produits + stock
 -- insert into Produit values (1, 2, 1, 1, 'Laptop Dell X', 899.99, 4);
