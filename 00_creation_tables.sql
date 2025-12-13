@@ -71,8 +71,8 @@ create table Stock (
 create table Categorie(
     CategorieId number(5),
     Nom varchar(20),
-    DateAjout DATE
-);
+    DateAjout DATE,
+    constraint PK_Categorie primary key(CategorieId) );
 
 --9.	SousCategorie (SousCategorieId, _____, Nom, DateAjout) 
 create table SousCategorie(
