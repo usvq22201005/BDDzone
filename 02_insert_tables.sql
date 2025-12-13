@@ -10,8 +10,8 @@ values (1, 'jdoe', 'Doe', 'John', '1 rue A', 'FR', 1);
 insert into Client(ClientId, NomUtilisateur, Nom, Prenom, Adresse, Pays, aLocal) 
 values (2, 'asmith', 'Smith', 'Alice', '2 rue B', 'FR', 0);
 
-insert into Fournisseur(ClientId, ProduitId, Quantite, Prix) values (1, 'Sony', 'JP', 5);
-insert into Fournisseur(ClientId, ProduitId, Quantite, Prix) values (2, 'Dell', 'US', 4);
+insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur) values (1, 'Sony', 'JP', 5);
+insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur) values (2, 'Dell', 'US', 4);
 
 insert into Categorie(CategorieId,Nom,DateAjout) 
 values (1, 'Informatique', sysdate);
