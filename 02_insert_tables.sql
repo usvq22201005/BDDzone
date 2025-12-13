@@ -10,25 +10,31 @@ values (1, 'jdoe', 'Doe', 'John', '1 rue A', 'FR', 1);
 insert into Client(ClientId, NomUtilisateur, Nom, Prenom, Adresse, Pays, aLocal) 
 values (2, 'asmith', 'Smith', 'Alice', '2 rue B', 'FR', 0);
 
-insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur) values (1, 'Sony', 'JP', 5);
-insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur) values (2, 'Dell', 'US', 4);
+insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur) 
+values (1, 'Sony', 'JP', 5);
+insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur) 
+values (2, 'Dell', 'US', 4);
 
 insert into Categorie(CategorieId,Nom,DateAjout) 
 values (1, 'Informatique', sysdate);
 insert into Categorie(CategorieId,Nom,DateAjout) 
 values (2, 'Audio', sysdate);
 
-insert into SousCategorie(SousCategorieId,Nom,DateAjout) values (1, 'PC Portable', sysdate);
-insert into SousCategorie(SousCategorieId,Nom,DateAjout) values (2, 'Casque', sysdate);
+insert into SousCategorie(SousCategorieId,Nom,DateAjout) 
+values (1, 'PC Portable', sysdate);
+insert into SousCategorie(SousCategorieId,Nom,DateAjout) 
+values (2, 'Casque', sysdate);
 
 -- 2️⃣ Lien catégorie ↔ sous-catégorie (CSC = vérité)
-insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId) values (1, 1, 1); -- Informatique / PC
-insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId) values (2, 2, 2); -- Audio / Casque
+insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId)
+ values (1, 1, 1); -- Informatique / PC
+insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId)
+ values (2, 2, 2); -- Audio / Casque
 
 -- 3️⃣ Produits + stock
 -- insert into Produit values (1, 2, 1, 1, 'Laptop Dell X', 899.99, 4);
 insert into Produit(ProduitId, FournisseurId, CategorieId,
-SousCategorieId, Nom, Prix, NoteProduit(ClientId, ProduitId, Note)) 
+SousCategorieId, Nom, Prix, NoteProduit) 
 values (2, 1, 2, 2, 'Casque Sony Z', 199.99, 5);
 
 insert into Stock values (1, 'FR', 1);
