@@ -26,8 +26,8 @@ insert into SousCategorie(SousCategorieId,Nom,DateAjout)
 values (2, 'Casque', sysdate);
 
 -- 2️⃣ Lien catégorie ↔ sous-catégorie (CSC = vérité)
-insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId)
- values (1, 1, 1); -- Informatique / PC
+insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId) 
+values (1, 1, 1); -- Informatique / PC
 insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId)
  values (2, 2, 2); -- Audio / Casque
 
@@ -36,6 +36,19 @@ insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId)
 insert into Produit(ProduitId, FournisseurId, CategorieId,
 SousCategorieId, Nom, Prix, NoteProduit) 
 values (2, 1, 2, 2, 'Casque Sony Z', 199.99, 5);
+
+insert into SousCategorie(SousCategorieId,Nom,DATEAJOUT) 
+values(3,'Tablette',sysdate);
+
+insert into CategorieSousCategorie
+(CSCId, CategorieId, SousCategorieId)
+values
+(3, 1, 3);
+
+insert into Produit(ProduitId, FournisseurId, CategorieId,
+SousCategorieId, Nom, Prix, NoteProduit) 
+values (1, 1, 1, 3, 'tablette Xiaomi', 179.95, 7);
+
 
 insert into Stock values (1, 'FR', 1);
 insert into Stock values (2, 'FR', 1);
@@ -65,7 +78,6 @@ insert into NoteProduit(ClientId, ProduitId, Note) values (1, 2, 5);
 
 insert into Recommandation(RecommandationId, ClientId, CSCId, DateHeure)
  values (1, 1, 2, sysdate);
-insert into RecommandationProduit values (1, 2);
 
 --7️⃣ Commit (ne pas oublier…)
 commit;
