@@ -74,12 +74,12 @@ create table Categorie(
     DateAjout DATE
 );
 
---9.	SousCategorie (SousCategorieId, CategorieId, Nom, DateAjout) 
+--9.	SousCategorie (SousCategorieId, _____, Nom, DateAjout) 
 create table SousCategorie(
     SousCategorieId number(5),
     
     -- !!! Schéma relationnel faux
-    CategorieId number(5), 
+    -- Suppression de CategorieId number(5), 
     -- colonne CategorieId inutile ? Relation stockée
     -- dans CSC...
     Nom varchar(20),
