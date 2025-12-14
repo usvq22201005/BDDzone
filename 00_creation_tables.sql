@@ -1,5 +1,6 @@
 --1.Client (ClientId, NomUtilisateur, Nom, Prenom,
--- Adresse, Pays, Local) 
+-- Adresse, Pays, Local)
+
 
 create table client(
     ClientId number(5),

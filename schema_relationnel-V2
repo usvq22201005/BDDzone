@@ -1,0 +1,39 @@
+Client (ClientId, NomUtilisateur, Nom, Prenom, Adresse, Pays, Local) 
+
+Produit  (
+    1 - ProduitId,
+ FournisseurId,
+  3 CategorieId,
+   4 SousCategorieId,
+    5 Nom,
+     6 Prix,
+      7 NoteProduit
+      ) 
+
+Commande (CommandeId, ClientId, DateCommande,
+ PrixTotal) 
+
+ProduitCommande (CommandeId, ProduitId,
+ Quantite, Prix) 
+
+5 SouhaiteAcheter (ClientId, ProduitId,
+ Quantite, Prix) 
+
+6 Fournisseur (FournisseurId, Nom,
+ Pays, NoteFournisseur) 
+
+7  Categorie (CategorieId, Nom, DateAjout) 
+
+SousCategorie (SousCategorieId, CategorieId, Nom, DateAjout) 
+
+CategorieSousCategorie (CategorieSousCategorieId, CategorieId, SousCategorieId CAN BE NULL)
+
+CentreDInteret (ClientId, CategorieId, SousCategorieId )  
+
+Favori (ClientId, CategorieId, SousCategorieId) 
+
+NoteProduit (ClientId, ProduitId, Note) 
+
+Recommandation (RecommandationId, ClientId, CategorieSousCategorieId, DateHeure)
+
+RecommandationProduit (RecommandationId, ProduitId) 
