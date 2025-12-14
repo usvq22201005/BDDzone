@@ -61,56 +61,49 @@ create table Fournisseur(
     NoteFournisseur number(2),
     constraint PK_Fournisseur primary key (FournisseurId)
 );
---7.	Stock (ProduitId, Pays, Disponible)
+--XX.	Stock (ProduitId, Pays, Disponible)
 create table Stock (
     ProduitId number(6),
     Pays varchar(20),
     Disponible number(1),
     constraint PK_Stock primary key (ProduitId, Pays)
 );
---8.	Categorie (CategorieId, Nom, DateAjout) 
+--7.	Categorie (CategorieId, Nom, DateAjout) 
 create table Categorie(
     CategorieId number(5),
     Nom varchar(20),
     DateAjout DATE,
     constraint PK_Categorie primary key(CategorieId) );
 
---9.	SousCategorie (SousCategorieId, _____, Nom, DateAjout) 
+--8.	SousCategorie (SousCategorieId, _____, Nom, DateAjout) 
 create table SousCategorie(
     SousCategorieId number(5),
-    
     -- !!! Schéma relationnel faux
-    -- Suppression de CategorieId number(5), 
-    -- colonne CategorieId inutile ? Relation stockée
-    -- dans CSC...
     Nom varchar(20),
     DateAjout DATE,
-    constraint PK_SousCategorie primary key (SousCategorieId)
-
-
-    
+    constraint PK_SousCategorie primary key (SousCategorieId)    
 );
---!!!!!! Ajout
---10.	CategorieSousCategorie (CSCId, CategorieId, SousCategorieId)
+
+--9.	CategorieSousCategorie (CSCId, CategorieId, SousCategorieId)
 create table CategorieSousCategorie(
     CSCId number(5),
     CategorieId number(5),
     SousCategorieId number(5),
     constraint PK_CSC primary key (CSCId)
 );
---11.	CentreDInteret (ClientId, CSCId)  
+--10.	CentreDInteret (ClientId, CSCId)  
 create table CentreDInteret(
     ClientId number(5),
     CSCId number(5),
     constraint PK_CentreInteret primary key (ClientId, CSCId)
 );
---12.	Favori (ClientId, CSCId)
+--11.	Favori (ClientId, CSCId)
 create table Favori(
     ClientId number(5), 
     CSCId number(5),
     constraint PK_Favori primary key (ClientId, CSCId)
 );
---13.	NoteProduit (ClientId, ProduitId, Note) 
+--12.	NoteProduit (ClientId, ProduitId, Note) 
 create table NoteProduit(
     ClientId number(5),
     ProduitId number(6),
@@ -119,7 +112,7 @@ create table NoteProduit(
 );
 
 
---14.	Recommandation (RecommandationId, ClientId, CSCId, DateHeure)
+--13.	Recommandation (RecommandationId, ClientId, CSCId, DateHeure)
 create table Recommandation (
     RecommandationId number(10),
     ClientId number(5), 
@@ -128,7 +121,7 @@ create table Recommandation (
     constraint PK_Recommandation primary key (RecommandationId)
 );
 
---15.	RecommandationProduit (RecommandationId, ProduitId)
+--14.	RecommandationProduit (RecommandationId, ProduitId)
 create table RecommandationProduit(
     RecommandationId number(10), 
     ProduitId number(6),

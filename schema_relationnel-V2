@@ -24,16 +24,16 @@ ProduitCommande (CommandeId, ProduitId,
 
 7  Categorie (CategorieId, Nom, DateAjout) 
 
-SousCategorie (SousCategorieId, CategorieId, Nom, DateAjout) 
+8 SousCategorie (SousCategorieId, CategorieId, Nom, DateAjout) 
 
-CategorieSousCategorie (CategorieSousCategorieId, CategorieId, SousCategorieId CAN BE NULL)
+9 CategorieSousCategorie (CategorieSousCategorieId, CategorieId, SousCategorieId CAN BE NULL)
 
-CentreDInteret (ClientId, CategorieId, SousCategorieId )  
+10 CentreDInteret (ClientId, CategorieId, SousCategorieId )  
 
-Favori (ClientId, CategorieId, SousCategorieId) 
+11 Favori (ClientId, CategorieId, SousCategorieId) 
 
-NoteProduit (ClientId, ProduitId, Note) 
+12 NoteProduit (ClientId, ProduitId, Note) 
 
-Recommandation (RecommandationId, ClientId, CategorieSousCategorieId, DateHeure)
+13 Recommandation (RecommandationId, ClientId, CategorieSousCategorieId, DateHeure)
 
-RecommandationProduit (RecommandationId, ProduitId) 
+14 RecommandationProduit (RecommandationId, ProduitId) 
