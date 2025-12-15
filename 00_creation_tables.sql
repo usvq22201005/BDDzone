@@ -61,13 +61,7 @@ create table Fournisseur(
     NoteFournisseur number(2),
     constraint PK_Fournisseur primary key (FournisseurId)
 );
---XX.	Stock (ProduitId, Pays, Disponible)
-create table Stock (
-    ProduitId number(6),
-    Pays varchar(20),
-    Disponible number(1),
-    constraint PK_Stock primary key (ProduitId, Pays)
-);
+
 --7.	Categorie (CategorieId, Nom, DateAjout) 
 create table Categorie(
     CategorieId number(5),
