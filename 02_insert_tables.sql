@@ -5,79 +5,68 @@
 -- est modifié
 
 -- 1️⃣ Référentiels de base (fondation)
-insert into Client(ClientId, NomUtilisateur, Nom, Prenom, Adresse, Pays, aLocal) 
-values (1, 'jdoe', 'Doe', 'John', '1 rue A', 'FR', 1);
-insert into Client(ClientId, NomUtilisateur, Nom, Prenom, Adresse, Pays, aLocal) 
-values (2, 'asmith', 'Smith', 'Alice', '2 rue B', 'FR', 0);
+insert into Client(ClientId, NomUtilisateur, Nom, Prenom, Adresse, Pays, aLocal)
+values (1, 'nrod01', 'Dupont', 'Nicolas', '1 rue de Paris', 'France', 1);
 
-insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur) 
-values (1, 'Sony', 'JP', 5);
-insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur) 
-values (2, 'Dell', 'US', 4);
+insert into Client(ClientId, NomUtilisateur, Nom, Prenom, Adresse, Pays, aLocal)
+values (2, 'lmartin', 'Martin', 'Lucie', '12 rue Lyon', 'France', 0);
 
-insert into Categorie(CategorieId,Nom,DateAjout) 
+
+insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur)
+values (1, 'FournisseurA', 'France', 5);
+
+insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur)
+values (2, 'FournisseurB', 'Allemagne', 4);
+
+-- Categories
+insert into Categorie(CategorieId, Nom, DateAjout)
 values (1, 'Informatique', sysdate);
-insert into Categorie(CategorieId,Nom,DateAjout) 
-values (2, 'Audio', sysdate);
 
-insert into SousCategorie(SousCategorieId,Nom,DateAjout) 
-values (1, 'PC Portable', sysdate);
-insert into SousCategorie(SousCategorieId,Nom,DateAjout) 
-values (2, 'Casque', sysdate);
+insert into SousCategorie(SousCategorieId, CategorieId, Nom, DateAjout)
+values (1, 1, 'Ordinateurs', sysdate);
 
--- 2️⃣ Lien catégorie ↔ sous-catégorie (CSC = vérité)
-insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId) 
-values (1, 1, 1); -- Informatique / PC
+insert into SousCategorie(SousCategorieId, CategorieId, Nom, DateAjout)
+values (2, 1, 'Accessoires', sysdate);
+--________________________________________________________________________________________________________________________________________________
+--________________________________________________________________________________________________________________________________________________
+-- CategorieSousCategorie
 insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId)
- values (2, 2, 2); -- Audio / Casque
+values (1, 1, 1);
 
--- 3️⃣ Produits + stock
--- insert into Produit values (1, 2, 1, 1, 'Laptop Dell X', 899.99, 4);
-insert into Produit(ProduitId, FournisseurId, CategorieId,
-SousCategorieId, Nom, Prix, NoteProduit) 
-values (2, 1, 2, 2, 'Casque Sony Z', 199.99, 5);
+insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId)
+values (2, 1, 2);
 
-insert into SousCategorie(SousCategorieId,Nom,DATEAJOUT) 
-values(3,'Tablette',sysdate);
+-- PRODUITS
+insert into Produit(ProduitId, FournisseurId, CategorieId, SousCategorieId, Nom, Prix, NoteProduit)
+values (1, 1, 1, 1, 'PC Portable', 1200, 5);
 
-insert into CategorieSousCategorie
-(CSCId, CategorieId, SousCategorieId)
-values
-(3, 1, 3);
+insert into Produit(ProduitId, FournisseurId, CategorieId, SousCategorieId, Nom, Prix, NoteProduit)
+values (2, 2, 1, 2, 'Souris Gamer', 50, 4);
 
-insert into Produit(ProduitId, FournisseurId, CategorieId,
-SousCategorieId, Nom, Prix, NoteProduit) 
-values (1, 1, 1, 3, 'tablette Xiaomi', 179.95, 7);
+-- 6️⃣ Commandes et ProduitsCommandes
+insert into Commande(CommandeId, ClientId, DateCommande, PrixTotal)
+values (1, 1, sysdate, 1250);
 
+insert into ProduitCommande(CommandeId, ProduitId, Quantite, Prix)
+values (1, 1, 1, 1200);
 
-insert into Stock values (1, 'FR', 1);
-insert into Stock values (2, 'FR', 1);
+insert into ProduitCommande(CommandeId, ProduitId, Quantite, Prix)
+values (1, 2, 1, 50);
 
--- 4️⃣ Commandes & lignes de commande
-insert into Commande(CommandeId,ClientId,DateCommande,PrixTotal)
- values (1, 1, sysdate, 1099.98);
+-- 7️⃣ Centres d’intérêt et Favoris
+insert into CentreDInteret(ClientId, CategorieId, SousCategorieId)
+values (1, 1, 1);
 
-insert into ProduitCommande(CommandeId,ProduitId,Quantite,Prix) 
-values (1, 1, 1, 899.99);
-insert into ProduitCommande(CommandeId,ProduitId,Quantite,Prix) 
-values (1, 2, 1, 199.99);
+insert into Favori(ClientId, CategorieId, SousCategorieId)
+values (1, 1, 2);
 
-
--- 5️⃣ Intention, favoris, notes
-insert into SouhaiteAcheter(ClientId,ProduitId,Quantite,Prix)
- values (2, 2, 1, 199.99);
-
-insert into CentreDInteret(ClientId, CSCId)
- values (1, 1);
-insert into Favori values (1, 2);
-
-insert into NoteProduit(ClientId, ProduitId, Note) values (1, 1, 4);
-insert into NoteProduit(ClientId, ProduitId, Note) values (1, 2, 5);
-
--- 6️⃣ Recommandations
+--  8️⃣ Notes et Recommandations
+insert into NoteProduit(ClientId, ProduitId, Note)
+values (1, 1, 5);
 
 insert into Recommandation(RecommandationId, ClientId, CSCId, DateHeure)
- values (1, 1, 2, sysdate);
+values (1, 1, 1, sysdate);
 
---7️⃣ Commit (ne pas oublier…)
-commit;
+insert into RecommandationProduit(RecommandationId, ProduitId)
+values (1, 1);
+

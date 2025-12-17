@@ -1,12 +1,5 @@
 -- Pour me faciliter l'existence
 -- je créer des vues : 
-CREATE VIEW V_AchatProduit AS
-SELECT c.ClientId, p.ProduitId,
- p.CSCId, cmd.DateCommande, l.Qte, l.Prix
-FROM Commande cmd
-JOIN LigneCommande l ON l.
-JOIN Produit p ON 
-JOIN Client c ON 
 
 CREATE VIEW V_Vente AS
 SELECT
@@ -38,7 +31,13 @@ SELECT
   n.Note
 FROM NoteProduit n;
 
-
+CREATE VIEW V_FavoriClient
+SELECT C.nomutilisateur,F., Cat.Nom
+FROM (Client C JOIN Favori F 
+ON C.ClientId = F.ClientId) 
+JOIN Categorie Cat
+ ON F.CategorieId = Cat.CategorieId  
+ ;
 
 -- Quels sont les **produits que souhaite acheter** 
 --un client **donné** qui appartiennent 
