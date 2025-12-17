@@ -1,5 +1,5 @@
 --1.Client (ClientId, NomUtilisateur, Nom, Prenom,
--- Adresse, Pays, Local)
+-- Adresse, Pays, aLocal)
 create table client(
     ClientId number(5),
     NomUtilisateur varchar(50),
@@ -137,7 +137,7 @@ create table CentreDInteret(
         references SousCategorie(SousCategorieId)
 );
 
---11.	Favori (ClientId, CSCId)
+--11.	Favori (ClientId, CategorieId,SousCategorieId)
 create table Favori(
     ClientId number(5), 
     CategorieId number(5),
