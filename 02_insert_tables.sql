@@ -39,19 +39,29 @@ values (2, 1, 2);
 -- PRODUITS
 insert into Produit(ProduitId, FournisseurId, CategorieId, SousCategorieId, Nom, Prix, NoteProduit)
 values (1, 1, 1, 1, 'PC Portable', 1200, 5);
-
 insert into Produit(ProduitId, FournisseurId, CategorieId, SousCategorieId, Nom, Prix, NoteProduit)
 values (2, 2, 1, 2, 'Souris Gamer', 50, 4);
+insert into Produit(ProduitId, FournisseurId, CategorieId, SousCategorieId, Nom, Prix, NoteProduit)
+values (3, 2, 1, 2, 'Casque Gamer', 70, 2);
 
 -- 6️⃣ Commandes et ProduitsCommandes
 insert into Commande(CommandeId, ClientId, DateCommande, PrixTotal)
 values (1, 1, sysdate, 1250);
+insert into Commande(CommandeId, ClientId, DateCommande, PrixTotal)
+values (2, 2, sysdate, 50);
+insert into Commande(CommandeId, ClientId, DateCommande, PrixTotal)
+values (3, 2, sysdate, 70);
 
 insert into ProduitCommande(CommandeId, ProduitId, Quantite, Prix)
 values (1, 1, 1, 1200);
-
 insert into ProduitCommande(CommandeId, ProduitId, Quantite, Prix)
 values (1, 2, 1, 50);
+insert into ProduitCommande(CommandeId, ProduitId, Quantite, Prix)
+values (2, 2, 1, 50);
+
+insert into ProduitCommande(CommandeId, ProduitId, Quantite, Prix)
+values (3, 3, 1, 70);
+
 
 -- 7️⃣ Centres d’intérêt et Favoris
 insert into CentreDInteret(ClientId, CategorieId, SousCategorieId)
@@ -66,10 +76,16 @@ values (1, 1, 5);
 
 insert into Recommandation(RecommandationId, ClientId, CSCId, DateHeure)
 values (1, 1, 1, sysdate);
-
+insert into Recommandation(RecommandationId, ClientId, CSCId, DateHeure)
+values (2, 2, 1, sysdate);
+insert into Recommandation(RecommandationId, ClientId, CSCId, DateHeure)
+values (3, 1, 1, sysdate);
 insert into RecommandationProduit(RecommandationId, ProduitId)
 values (1, 1);
-
+insert into RecommandationProduit(RecommandationId, ProduitId)
+values (2, 2);
+insert into RecommandationProduit(RecommandationId, ProduitId)
+values (3, 2);
 -- Insertion souhait de lmartin
 insert into SouhaiteAcheter(ClientId, ProduitId, Quantite, Prix) 
 values (2,1,1,1200);

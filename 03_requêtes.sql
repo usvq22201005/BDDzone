@@ -61,12 +61,11 @@ select
   p.nom as nom_produit,
   cat.nom as categorie,
   cat.categorieid,
-  r.DateHeure
+  r.DateHeure as DateReco
 from Recommandation r
 join RecommandationProduit rp ON r.RecommandationId = rp.RecommandationId
 join Produit p on rp.produitid= p.produitid
-join Categorie cat on cat.categorieid = p.categorieid 
-;
+join Categorie cat on cat.categorieid = p.categorieid ;
 
 -- les catégories présentes dans ses souhait d'achat et qui n’ont
 --jamais été recommandées
@@ -118,19 +117,85 @@ période donnée ?
 */
 
 CREATE VIEW V_Vente_Fournisseur as 
-select pc.commandeid,p.produitid,c.datecommande, p.nom,pc.prix,pc.quantite 
-from commande c join produitcommande pc
-on c.commandeid = pc.commandeid
+select pc.commandeid,p.produitid,co.datecommande, p.nom,pc.prix,pc.quantite,f.fournisseurid,f.nom as nom_fourn
+from commande co join produitcommande pc
+on co.commandeid = pc.commandeid
 join produit p on pc.produitid =p.produitid
--- heureusement un produit n'a qu'un seul fournisseur d'apres le schema...
+-- un produit n'a qu'un seul fournisseur, l'inverse est faux.
 join fournisseur f on p.fournisseurid = f.fournisseurid ;
 
 -- Bon déja il faut obtenir les 3 produits les plus vendus :
 --on s'inspire de la requête précédente :
+create view V_top3ventes as 
 select * 
 from ( 
-  select sum() nb_vente
-  from V_Vente_Client vc
-  group by vc.produitid
-  order by nb_vente DESC)
-where rownum <= 3 ;
+  select sum(vf.quantite) as nb_vente,vf.nom as nom_produit, vf.produitid,vf.fournisseurid
+  from V_Vente_Fournisseur vf
+  -- a retirer si on veut le top3 des ventes en général
+  where vf.fournisseurid= 2
+  and vf.datecommande between TO_DATE('2025-12-01','YYYY-MM-DD') and TO_DATE('2025-12-26','YYYY-MM-DD')
+  -- -- ------------------------------------
+  group by vf.produitid, vf.nom, vf.fournisseurid
+  order by sum(vf.quantite) DESC) 
+where rownum <= 3 ; 
+
+-- Requête n°5 (variante de la précédente...)
+-- Quel est le produit qui a rapporté le plus d’argent à un fournisseur donné sur
+-- une période donnée ?
+
+select *
+from ( 
+  select sum(vf.prix*vf.quantite) as Gain_Produit,vf.nom as nom_produit, vf.produitid,vf.fournisseurid
+  from V_Vente_Fournisseur vf
+  
+  -- a retirer si on veut le top3 des ventes en général indépendamment du fournisseur et de la date de commande.
+  where vf.fournisseurid= 2
+  and vf.datecommande between TO_DATE('2025-12-01','YYYY-MM-DD') and TO_DATE('2025-12-26','YYYY-MM-DD')
+  -- -- ------------------------------------
+  group by vf.produitid, vf.nom, vf.fournisseurid
+  order by sum(vf.prix*vf.quantite) DESC) 
+  where rownum = 1;--j'ai essayé avec MAX mais seul rownum permet d'extraire le nom du produit avec le montant.
+  -- ducoup au final c'est vraiment presque la même requête.
+  
+  -- Requête n°6 : Produits recommandés et achetés dans les 30 jours
+  
+  -- pour les requêtes sur le client qui commande des articles
+  -- et on doit savoir si ces dernier furent recommandé et à quelle date : 
+  -- la MEGA vue !!! (la dernière normalement)
+
+CREATE VIEW V_Vente_Client AS
+select
+  pc.CommandeId,
+  cli.clientid,
+  cli.nomutilisateur ,
+  p.ProduitId,
+  p.nom,
+  p.SousCategorieId,
+  sc.CategorieId,
+  pc.Quantite,
+  pc.Prix,
+  co.DateCommande
+from ProduitCommande pc
+join Commande co ON pc.CommandeId = co.CommandeId
+join  Client cli ON co.clientId = cli.clientId 
+join Produit p ON pc.ProduitId = p.ProduitId
+join SousCategorie sc ON p.SousCategorieId = sc.SousCategorieId ;
+
+  -- on va pouvoir aussi reuttiliser la vue des recommendations :
+  -- 
+  select REC.clientid, VC.datecommande, VC.nom
+  from V_recommandation REC
+  join V_Vente_Client VC on REC.clientid=VC.clientid
+  and  REC.produitid=VC.produitid -- on veut le même client ET le même produit recommandé/vendu
+  -- grâce aux vues la requête est assez simple
+  -- il suffit de mettre la restriction dans les 30 jours suivant la recommandation 
+  where VC.datecommande between REC.DateReco-1  and REC.DateReco+30;
+  
+-- Requête n°7 Quels sont les 3 produits les plus recommandés (toutes catégories
+-- confondues) sur le dernier mois 
+  select count(*) as nb_reco,produitid
+  from V_recommandation REC 
+  group by REC.produitid
+  order by count(*) DESC;
+
+

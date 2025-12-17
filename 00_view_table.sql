@@ -2,9 +2,10 @@ select * from client ;
 select table_name from user_tables ;
 select * from commande ;
 select * from SouhaiteAcheter ;
-
+select * from produitcommande ;
 select * from categorie ;
 select * from produit ;
+select * from RecommandationProduit ;
 
 CREATE VIEW V_Vente_Client AS
 select
