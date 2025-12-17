@@ -70,3 +70,6 @@ values (1, 1, 1, sysdate);
 insert into RecommandationProduit(RecommandationId, ProduitId)
 values (1, 1);
 
+-- Insertion souhait de lmartin
+insert into SouhaiteAcheter(ClientId, ProduitId, Quantite, Prix) 
+values (2,1,1,1200);
