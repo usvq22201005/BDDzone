@@ -1,5 +1,6 @@
-begin
-  for t in (select table_name from user_tables) loop
-    execute immediate 'drop table ' || t.table_name || ' cascade constraints';
-  end loop;
-end;
+BEGIN
+  FOR t IN (SELECT table_name FROM user_tables) LOOP
+    EXECUTE IMMEDIATE 'DROP TABLE ' || t.table_name || ' CASCADE CONSTRAINTS';
+  END LOOP;
+END;
+/

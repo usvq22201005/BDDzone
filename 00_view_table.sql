@@ -6,7 +6,7 @@ select * from produitcommande ;
 select * from categorie ;
 select * from produit ;
 select * from RecommandationProduit ;
-
+select * from Produit ;
 CREATE VIEW V_Vente_Client AS
 select
   pc.CommandeId,

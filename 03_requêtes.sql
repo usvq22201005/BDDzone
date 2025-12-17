@@ -111,6 +111,9 @@ where rownum <= 3 ;
 -- il faut le mettre après que l'aggregat soit fait sinon les trois lignes  sont prise indépendamment de la moyenne.
 -- https://use-the-index-luke.com/sql/partial-results/top-n-queries
 
+
+
+
 /*
 -- Requêtes n°4 : Quels sont les 3 produits les plus vendus par un fournisseur donné sur une
 période donnée ?
@@ -125,7 +128,7 @@ join produit p on pc.produitid =p.produitid
 join fournisseur f on p.fournisseurid = f.fournisseurid ;
 
 -- Bon déja il faut obtenir les 3 produits les plus vendus :
---on s'inspire de la requête précédente :
+-- puis ensuite appliquer une restriction sur la période et le fournisseur...
 create view V_top3ventes as 
 select * 
 from ( 
@@ -156,12 +159,14 @@ from (
   order by sum(vf.prix*vf.quantite) DESC) 
   where rownum = 1;--j'ai essayé avec MAX mais seul rownum permet d'extraire le nom du produit avec le montant.
   -- ducoup au final c'est vraiment presque la même requête.
-  
-  -- Requête n°6 : Produits recommandés et achetés dans les 30 jours
-  
-  -- pour les requêtes sur le client qui commande des articles
-  -- et on doit savoir si ces dernier furent recommandé et à quelle date : 
-  -- la MEGA vue !!! (la dernière normalement)
+
+
+
+
+-- Requête n°6 : Produits recommandés et achetés dans les 30 jours
+-- Pour les requêtes qui portent sur les clients et les commandes d'articles
+-- mais aussi sur leur recommendation et celle cie à quelle date : 
+-- la MEGA vue Vente_Client !!! 
 
 CREATE VIEW V_Vente_Client AS
 select
@@ -190,12 +195,53 @@ join SousCategorie sc ON p.SousCategorieId = sc.SousCategorieId ;
   -- grâce aux vues la requête est assez simple
   -- il suffit de mettre la restriction dans les 30 jours suivant la recommandation 
   where VC.datecommande between REC.DateReco-1  and REC.DateReco+30;
+
   
 -- Requête n°7 Quels sont les 3 produits les plus recommandés (toutes catégories
 -- confondues) sur le dernier mois 
-  select count(*) as nb_reco,produitid
+  select * from(
+  select count(*) as nb_reco,produitid,rec.nom_produit
   from V_recommandation REC 
-  group by REC.produitid
-  order by count(*) DESC;
+  group by REC.produitid, rec.nom_produit
+  order by count(*) DESC)
+  where rownum <=3;-- je commence à m'habituer à faire des top 3...
 
+
+/*
+--Requête n°8 
+Quels sont les produits les plus achetés par les clients qui ne veulent acheter
+que local ? Et pour un pays en particulier ?
+*/
+-- ressemble beaucoup aux requête précédentes... notamment la n°4 mais en uttilisant cette fois VC
+select *
+from (select sum(VC.quantite) as nb_achete,VC.produitid
+from v_vente_client VC
+join client CL on CL.clientid= VC.clientid
+join Produit P on P.produitid = VC.produitid -- chercher infos fournisseur du produit, jointure nécéssaire
+join fournisseur F on F.fournisseurid = P.fournisseurid
+where CL.aLocal =1 and F.pays='France' -- pour un pays en particulier... à retirer pour elargir.
+group by VC.produitid
+order by nb_achete DESC)
+where rownum <= 3;
+
+
+
+/*                                                Catégories et Sous-catégories
+--Requête n°9
+Quelle est la catégorie dont les articles sont les mieux notés en moyenne  ?
+*/
+
+create view categorie_article as
+select *
+from(
+select avg(p.noteproduit) as moy_notes,cat.categorieid
+from produit p join categorie cat on
+p.categorieid = cat.categorieid
+group by cat.categorieid
+order by moy_notes DESC)
+where rownum <=3 ;
+/*
+--Requête n°10
+
+*/
 
