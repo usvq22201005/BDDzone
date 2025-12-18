@@ -56,7 +56,7 @@ create table CategorieSousCategorie(
 -- SousCategorieId, Nom, Prix) 
 create table Produit (
     ProduitId number(6),
-    FournisseurId number(5),
+    FournisseurId nu mber(5),
     CategorieId number(5),
     SousCategorieId number(5),
     Nom varchar(50),

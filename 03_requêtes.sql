@@ -270,6 +270,45 @@ order by nb_vente
 
 /*
 --Requête n°11
-Quelles sont les 3 catégories dont le plus de produits ont été vendus ce dernier mois  ?
-Encore un top3... 
+Quels pourcentages représentent chaque catégorie achetée par un client donné dans
+ses achats totaux sur une période donnée ?
+
+Requête très difficile car il faut extraire les pourcentages
+sinon le nombre d'achat par categorie est plus simple  à écrire
+et se trouve dans la table temporaire QClientCat.
+*/
+
+-- pour faire cette requête je me suis aidé de la vue ci dessous sinon c'est vraiment 
+-- dur de visualiser les jointures...
+--select * from V_Vente_Client VC;  
+
+select QClientCat.clientid as clientid,QClientCat.nom as categorie, 
+
+(QClientCat.qte_cat/QClient.client_total)*100 as pourcentage
+
+from 
+(
+select cat.nom,VC.nomutilisateur, VC.clientid, sum(VC.quantite) as qte_cat
+from V_Vente_Client VC 
+join categorie cat on
+VC.categorieid = cat.categorieid
+group by (cat.categorieid,VC.clientid,cat.nom,VC.nomutilisateur)
+)QClientCat
+
+join 
+(
+select VC.clientid,sum(VC.quantite) as client_total
+from V_Vente_Client VC
+group by VC.clientid
+) QClient
+
+on QClientCat.clientid= QClient.clientid 
+; -- pfiou
+-- pour une période donnée et un client donné il faut rajouter des where
+-- dans les deux tables temporaire mais je risque de pas avoir le temps...
+
+/*
+--Requête n°12
+12) Pour un client donné, quelles sont les catégories 
+dont il a acheté au moins trois produits appartenant à des sous-catégories différentes ?
 */
