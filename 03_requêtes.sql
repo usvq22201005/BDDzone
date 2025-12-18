@@ -502,3 +502,20 @@ Requête n°19
 Quels clients ont reçu une recommandation 
 contenant au moins un produit qu’ils avaient déjà acheté ?
 */
+select * from V_Recommandation_Produit VR ;
+select *
+from V_Vente_Client VC ;
+
+select clientid from client
+where exists (
+select VC.clientid,VC.produitid as prot_acheté_reco, VR.Datereco
+from V_Vente_Client VC 
+join V_Recommandation_Produit VR
+on VC.clientid = VR.clientid
+and VC.produitid = VR.produitid 
+);
+
+/*
+Requête n°20 Quel est le total des ventes d’un fournisseur donné sur une période donnée ?
+
+*/
