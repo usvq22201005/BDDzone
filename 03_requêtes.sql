@@ -26,11 +26,11 @@ and clientid = 2 ;
 
 -- mais pour cela on crée la vue favori (utile plus tard)
 CREATE VIEW V_FavoriClient as
-select C.ClientId, C.nomutilisateur, Cat.Nom as CategorieFavorite,
+select CL.ClientId, CL.nomutilisateur, Cat.Nom as CategorieFavorite,
 Cat.CategorieId
-from (Client C 
+from (Client CL 
 join Favori F 
-on C.ClientId = F.ClientId) 
+on CL.ClientId = F.ClientId) 
 join  Categorie Cat
  on F.CategorieId = Cat.CategorieId 
 ;
@@ -240,19 +240,36 @@ join produit p on p.produitid = V.produitid
 join categorie cat on cat.categorieid=p.categorieid 
 ;
 -- puis on fait l'aggregat
+select * from (
 select avg(V2.note) as note_moy, V2.nom
 from V_Note_Categorie V2
 group by V2.nom
-order by note_moy DESC ;
-
-group by cat.categorieid
-order by moy_notes DESC)
+order by note_moy DESC
+)
 where rownum <=1 ; -- pour obtenir LA categorie ayant la meilleure moyenne de notes...
 
 
 /*
 --Requête n°10
 Quelles sont les 3 catégories dont le plus de produits ont été vendus ce dernier mois  ?
-Encore un top3... hereusement je peux carrément
+Encore un top3... 
 */
 
+select * from(
+
+select cat.nom, sum(V.quantite) as nb_vente 
+from V_Vente_Fournisseur V
+join produit p on
+V.produitid = p.produitid
+join categorie cat on cat.categorieid=p.categorieid
+
+group by cat.nom
+order by nb_vente
+) where rownum <=3;
+
+
+/*
+--Requête n°11
+Quelles sont les 3 catégories dont le plus de produits ont été vendus ce dernier mois  ?
+Encore un top3... 
+*/

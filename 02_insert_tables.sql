@@ -33,12 +33,12 @@ insert into CategorieSousCategorie(CSCId, CategorieId, SousCategorieId)
 values (2, 1, 2);
 
 -- PRODUITS
-insert into Produit(ProduitId, FournisseurId, CategorieId, SousCategorieId, Nom, Prix)
-values (1, 1, 1, 1, 'PC Portable', 1200);
-insert into Produit(ProduitId, FournisseurId, CategorieId, SousCategorieId, Nom, Prix)
-values (2, 2, 1, 2, 'Souris Gamer', 50);
-insert into Produit(ProduitId, FournisseurId, CategorieId, SousCategorieId, Nom, Prix)
-values (3, 2, 1, 2, 'Casque Gamer', 70);
+insert into Produit(ProduitId, FournisseurId, CategorieId, SousCategorieId, Nom, Prix,NoteProduit)
+values (1, 1, 1, 1, 'PC Portable', 1200,5);
+insert into Produit(ProduitId, FournisseurId, CategorieId, SousCategorieId, Nom, Prix,NoteProduit)
+values (2, 2, 1, 2, 'Souris Gamer', 50,3.5);
+insert into Produit(ProduitId, FournisseurId, CategorieId, SousCategorieId, Nom, Prix,NoteProduit)
+values (3, 2, 1, 2, 'Casque Gamer', 70,2.5);
 
 -- 6️⃣ Commandes et ProduitsCommandes
 insert into Commande(CommandeId, ClientId, DateCommande, PrixTotal)

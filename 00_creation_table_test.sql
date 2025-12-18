@@ -60,7 +60,8 @@ create table Produit (
     CategorieId number(5),
     SousCategorieId number(5),
     Nom varchar(50),
-    Prix number(10,2),  -- Valeur max=99999999.99
+    Prix number(10,2),-- Valeur max=99999999.99
+    Noteproduit number(2),
     constraint PK_Produit primary key (ProduitId),
     constraint FK_Produit_Fournisseur
         foreign key (FournisseurId)
