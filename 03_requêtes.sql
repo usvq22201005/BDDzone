@@ -54,18 +54,20 @@ and exists( -- vérifie qu'une ligne dans Favori a le même clientId et Categori
 --Requête n°2 Pour chaque client, quelles (sous-)catégories présentes dans ses souhait d'achat n’ont
 --jamais été recommandées
 
-CREATE VIEW V_Recommandation AS
+CREATE VIEW V_Recommandation_Produit AS
 select
   r.ClientId,
   rp.ProduitId,
   p.nom as nom_produit,
   cat.nom as categorie,
   cat.categorieid,
+  sc.souscategorieid ,
   r.DateHeure as DateReco
 from Recommandation r
 join RecommandationProduit rp ON r.RecommandationId = rp.RecommandationId
 join Produit p on rp.produitid= p.produitid
-join Categorie cat on cat.categorieid = p.categorieid ;
+join Categorie cat on cat.categorieid = p.categorieid 
+join souscategorie sc on p.souscategorieid = sc.souscategorieid;
 
 -- les catégories présentes dans ses souhait d'achat et qui n’ont
 --jamais été recommandées
@@ -75,7 +77,7 @@ from V_SouhaitAchat_Client SAC
 where categorieId not in 
 ( 
 select REC.categorieId
-from V_Recommandation REC
+from V_Recommandation_Produit REC
 where REC.clientid =2
 ); 
 
@@ -188,9 +190,9 @@ join Produit p ON pc.ProduitId = p.ProduitId
 join SousCategorie sc ON p.SousCategorieId = sc.SousCategorieId ;
 
   -- on va pouvoir aussi reuttiliser la vue des recommendations :
-  -- 
+  -- on obtient les clients qui ont acheter suite à une recommendation
   select REC.clientid, VC.datecommande, VC.nom
-  from V_recommandation REC
+  from V_recommandation_Produit REC
   join V_Vente_Client VC on REC.clientid=VC.clientid
   and  REC.produitid=VC.produitid -- on veut le même client ET le même produit recommandé/vendu
   -- grâce aux vues la requête est assez simple
@@ -202,7 +204,7 @@ join SousCategorie sc ON p.SousCategorieId = sc.SousCategorieId ;
 -- confondues) sur le dernier mois 
   select * from(
   select count(*) as nb_reco,produitid,rec.nom_produit
-  from V_recommandation REC 
+  from V_recommandation_Produit REC 
   group by REC.produitid, rec.nom_produit
   order by count(*) DESC)
   where rownum <=3;-- je commence à m'habituer à faire des top 3...
@@ -255,8 +257,8 @@ Quelles sont les 3 catégories dont le plus de produits ont été vendus ce dern
 Encore un top3... 
 */
 
-select * from(
-
+select * 
+from(
 select cat.nom, sum(V.quantite) as nb_vente 
 from V_Vente_Fournisseur V
 join produit p on
@@ -283,9 +285,7 @@ et se trouve dans la table temporaire QClientCat.
 --select * from V_Vente_Client VC;  
 
 select QClientCat.clientid as clientid,QClientCat.nom as categorie, 
-
 (QClientCat.qte_cat/QClient.client_total)*100 as pourcentage
-
 from 
 (
 select cat.nom,VC.nomutilisateur, VC.clientid, sum(VC.quantite) as qte_cat
@@ -339,9 +339,154 @@ where V.nb_souscat >=2 ;-- pour tester j'ai mis 2 souscategorie/produits distinc
 Quels clients ont acheté tous les produits d’une sous-catégorie donnée,
 et quel pourcentage des produits de cette sous-catégorie ont-ils noté ?
 */
--- on réutilise vue précédente :
+-- nombre de produit distincts dans une sous categorie :
 create view SC_allproduit as
-select count(distinct p.produitid)
+select count(distinct p.produitid) as nb_produit ,SC.souscategorieid
 from souscategorie SC join
 produit p on SC.souscategorieid 
-= p.souscategorieid
+= p.souscategorieid 
+group by SC.souscategorieid;
+
+-- nombre de produits distinct acheté par sous categorie/client
+create view CL_achatSC as
+select count(distinct produitid)as nb_achat,VC.clientid,VC.souscategorieid
+from V_Vente_Client VC
+group by VC.clientid,VC.souscategorieid ;
+
+-- On la requête finale (n°13):
+select CL_achatSC.nb_achat as nb_achat, CL_achatSC.clientid as clientid,
+CL_achatSC.souscategorieid as SousCategorieId,SC_allproduit.nb_produit
+from
+CL_achatSC join SC_allproduit
+on CL_achatSC.souscategorieid=SC_allproduit.souscategorieid
+
+-- finalement on vérifie que le client à acheté pour une SC donne
+-- autant de produit distincts qu'il y en a dans la SC.
+where CL_achatSC.nb_achat = SC_allproduit.nb_produit ;
+
+/*
+--Requête n°14
+Quelles (sous-)catégories ont été ajoutées sur une période donnée  ?
+
+*/
+create view C_PERIOD as
+select * from 
+categorie cat
+where cat.dateajout between TO_DATE('2025-01-01','YYYY-MM-DD')
+AND TO_DATE('2025-12-31','YYYY-MM-DD');
+-- enfin des requêtes qui ne me prennent pas 1h à écrire...
+create view SC_PERIOD as
+select * from 
+souscategorie SC
+where SC.dateajout between TO_DATE('2025-01-01','YYYY-MM-DD')
+AND TO_DATE('2025-12-31','YYYY-MM-DD') ;
+
+--pour avoir les 2 (categories et sous categories) :
+select SCP.nom as Nom,SCP.Dateajout as Dateajout from SC_PERIOD SCP 
+UNION ALL 
+select CP.Nom as Nom, CP.Dateajout as Dateajout from C_PERIOD CP ;
+
+/*
+--Requête n°15 
+Quels sont les clients ayant des centres d’intérêt similaires à un client donné ? 
+
+disons similarité = au moins une sous-catégorie commune
+
+*/ 
+--select * from CentreDInteret Ci1 ;
+
+
+select Ci1.clientid as c1,Ci2.clientid as c2,
+count(distinct Ci2.souscategorieid) as nb_commun -- nb sous categorie en commun
+from
+-- autojointure comme au CC1 l'année dernière (ca a fait mal)
+-- dur à faire sans visualiser au fur et à mesure avec SQL developper :
+CentreDInteret Ci1 join CentreDInteret Ci2
+on Ci1.clientid != Ci2.clientid 
+and Ci1.souscategorieid = Ci2.souscategorieid -- 
+group by Ci1.clientid,Ci2.clientid -- couples du produit cartésien
+;
+
+/*
+--Requête n°16) Quels sont les clients pour lesquels nous avons recommandé une sous-catégorie au moins 
+3 fois au cours des 6 derniers mois, 
+mais qui n’ont jamais acheté de produit dans cette sous-catégorie après ces recommandations ?
+
+ON NE PEUX PAS reuttiliser la VUE V_Recommandation_Produit 
+car on cherche le nombre de recommendation pour une categorie/souscategorie
+*/ 
+-- On cherche le nombre de categorie.souscategorie recommendéess dans la table recommendation...
+create view V_Recommandation as
+select R.Recommandationid,R.clientid, CSC.CSCid,R.Dateheure,categorieid,souscategorieid
+from recommandation R
+join CategorieSousCategorie CSC
+on R.CSCID =CSC.CSCID
+;
+
+-- on compte les recommandation apr client : 
+select V.clientid, V.categorieid, V.souscategorieid, count(*) as nb_reco
+from V_Recommandation V
+where DateHeure >= add_months(sysdate, -6) -- sur les 6 dernier mois
+group by V.clientid, V.categorieid, V.souscategorieid
+having count(*) >= 3 
+-- Plus complexe par sûr que cela marche après tests...
+-- on veut que le client n'ai pas commandé malgré 3(ou+) recommandaitons
+and clientid not in 
+(
+select VC.clientid
+from V_Vente_Client VC
+where datecommande >= add_months(sysdate, -6)
+and VC.souscategorieid = V.souscategorieid
+);-- Dans les test aucun client ne correspond à ces critères...
+
+--select * from V_Vente_Client VC;
+
+--on veut les clients dans cette liste qui ne sont pas dans la liste de vente
+-- de cette sous categorie après cette recommendation
+/*
+Requête n°17  Quels sont les 5 clients ayant dépensé 
+le plus sur les douze derniers mois et quel pourcentage des produits 
+qu’ils ont achetés leur ont été recommandés ?
+*/
+create view V_top5depense as
+select *
+from(
+select clientid,sum(quantite*prix) as depense
+from V_Vente_Client VC
+group by clientid
+order by depense DESC )
+where rownum <=5;s
+
+
+/*
+select * --clientid
+from V_Recommandation_Produit; */
+
+/*
+Requête n°18
+Quels sont les 5 clients qui ont le plus grand écart 
+entre la note moyenne qu’ils laissent et la note moyenne des produits qu’ils achètent ?
+*/
+create view note_laisse as
+select CL.clientid,avg(NP.note) as moy_note
+from client CL join NoteProduit NP
+on CL.clientid = NP.clientid
+group by CL.clientid
+;
+
+-- on peux uttiliser aussi l'attribut noteproduit de la table produit qui est la note moyenne du produit
+create view note_moy as 
+select NP.produitid,avg(NP.note) as moy_prod
+from NoteProduit NP
+group by NP.produitid
+;
+
+/* pour visualiser
+create view produit_achete_client as
+select clientid, produitid
+from V_Vente_Client VC ;
+*/
+-- et enfin la requête :
+select *
+from produit_achete_client pac join note_laisse nl
+on pac.clientid = nl.clientid ;

@@ -62,9 +62,12 @@ values (3, 3, 1, 70);
 -- 7️⃣ Centres d’intérêt et Favoris
 insert into CentreDInteret(ClientId, CategorieId, SousCategorieId)
 values (1, 1, 1);
+insert into CentreDInteret(ClientId, CategorieId, SousCategorieId)
+values (2, 1, 2);
+insert into CentreDInteret(ClientId, CategorieId, SousCategorieId)
+values (2, 1, 1);
 
-insert into Favori(ClientId, CategorieId, SousCategorieId)
-values (1, 1, 2);
+
 insert into Favori(ClientId, CategorieId, SousCategorieId)
 values (2, 1, 1);
 insert into Favori(ClientId, CategorieId, SousCategorieId)
@@ -86,15 +89,24 @@ values (2, 3, 3);
 insert into Recommandation(RecommandationId, ClientId, CSCId, DateHeure)
 values (1, 1, 1, sysdate);
 insert into Recommandation(RecommandationId, ClientId, CSCId, DateHeure)
-values (2, 2, 1, sysdate);
+values (2, 2, 2, sysdate);
 insert into Recommandation(RecommandationId, ClientId, CSCId, DateHeure)
 values (3, 1, 1, sysdate);
+insert into Recommandation(RecommandationId, ClientId, CSCId, DateHeure)
+values (4, 1, 1, sysdate);
+insert into Recommandation(RecommandationId, ClientId, CSCId, DateHeure)
+values (5, 1, 1, sysdate);
+
 insert into RecommandationProduit(RecommandationId, ProduitId)
 values (1, 1);
 insert into RecommandationProduit(RecommandationId, ProduitId)
 values (2, 2);
 insert into RecommandationProduit(RecommandationId, ProduitId)
-values (3, 2);
+values (3, 1);
+insert into RecommandationProduit(RecommandationId, ProduitId)
+values (4, 1);
+insert into RecommandationProduit(RecommandationId, ProduitId)
+values (5, 1);
 -- Insertion souhait de lmartin
 insert into SouhaiteAcheter(ClientId, ProduitId, Quantite, Prix) 
 values (2,1,1,1200);

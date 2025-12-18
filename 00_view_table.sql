@@ -1,5 +1,8 @@
-select * from client ;
 select table_name from user_tables ;
+
+
+select * from client ;
+
 select * from commande ;
 select * from SouhaiteAcheter ;
 select * from produitcommande ;
@@ -11,6 +14,13 @@ select * from noteproduit ;
 
 select * from RecommandationProduit ;
 select * from Produit ;
+
+select * from categorie ;
+select  * from souscategorie ;
+select * from CategorieSousCategorie ;
+
+
+
 CREATE VIEW V_Vente_Client AS
 select
   pc.CommandeId,
@@ -29,4 +39,9 @@ join Produit p ON pc.ProduitId = p.ProduitId
 join SousCategorie sc ON p.SousCategorieId = sc.SousCategorieId ;
 
 select * from favori ;
-select * from SouhaiteAcheter
+select * from SouhaiteAcheter ;
+
+
+select *
+from client CL join NoteProduit NP
+on CL.clientid = NP.clientid ;
