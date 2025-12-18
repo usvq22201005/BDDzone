@@ -1,5 +1,5 @@
 --1.Client (ClientId, NomUtilisateur, Nom, Prenom,
--- Adresse, Pays, aLocal)
+-- Adresse, Pays, Local)
 create table client(
     ClientId number(5),
     NomUtilisateur varchar(50),
@@ -60,8 +60,8 @@ create table Produit (
     CategorieId number(5),
     SousCategorieId number(5),
     Nom varchar(50),
-    Prix number(10,2),  -- Valeur max=99999999.99
-    NoteProduit number(2),
+    Prix number(10,2),-- Valeur max=99999999.99
+    Noteproduit number(2),
     constraint PK_Produit primary key (ProduitId),
     constraint FK_Produit_Fournisseur
         foreign key (FournisseurId)
