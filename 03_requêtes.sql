@@ -311,4 +311,37 @@ on QClientCat.clientid= QClient.clientid
 --Requête n°12
 12) Pour un client donné, quelles sont les catégories 
 dont il a acheté au moins trois produits appartenant à des sous-catégories différentes ?
+
+
 */
+-- La VUE V_Vente_Client est essentielle
+-- car elle contient déja les sous categorie achetées
+-- ce qui epargne des jointures en plus à écrire.
+select * from V_Vente_Client ;
+
+create view V_NB_SousCatAchete_ParCat as
+select VC.clientid,count(distinct souscategorieid) as nb_souscat,VC.categorieid
+from V_Vente_Client VC 
+group by VC.clientid,VC.categorieid -- on groupe client ET par categorie
+-- on obtient ainsi le nombre de souscategorie distincte achete PAR Categorie/client...
+;
+
+-- on identifie les client "explorateurs" qui pour une categorie donné
+-- compte 3 achat de souscategorie distinctes...
+select V.clientid, V.categorieid,V.nb_souscat as nb_ScAchete
+from V_NB_SousCatAchete_ParCat V
+where V.nb_souscat >=2 ;-- pour tester j'ai mis 2 souscategorie/produits distincte achete.
+-- la requête demande 3,
+
+
+/*
+--Requête n°13
+Quels clients ont acheté tous les produits d’une sous-catégorie donnée,
+et quel pourcentage des produits de cette sous-catégorie ont-ils noté ?
+*/
+-- on réutilise vue précédente :
+create view SC_allproduit as
+select count(distinct p.produitid)
+from souscategorie SC join
+produit p on SC.souscategorieid 
+= p.souscategorieid
