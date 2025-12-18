@@ -1,4 +1,4 @@
--- Pour me faciliter l'existence dans la construction des requêtes
+  -- Pour me faciliter l'existence dans la construction des requêtes
 -- j'ai crée des vues intermédiaires ... 
 
 
@@ -35,7 +35,7 @@ join  Categorie Cat
  on F.CategorieId = Cat.CategorieId 
 ;
 
--- Voyons si les produits mis en souhait appartiennent à une catégorie favorite du client :
+-- Voyons si les produits mis en souhait par un client appartiennent à une catégorie favorite du client :
 select SAC.nom_produit
 from V_SouhaitAchat_Client SAC
 where SAC.clientId = 2
@@ -107,7 +107,7 @@ from (
   order by avg(v.note) DESC
   )
 where rownum <= 3 ;
- -- j'uttilise row_num aprceque fetch first 3 existe pas sur toute les versions d'ORACLE...
+ -- j'uttilise row_num aprceque fetch first 3 n'existe pas sur toute les versions d'ORACLE...
 -- il faut le mettre après que l'aggregat soit fait sinon les trois lignes  sont prise indépendamment de la moyenne.
 -- https://use-the-index-luke.com/sql/partial-results/top-n-queries
 
@@ -128,12 +128,13 @@ join produit p on pc.produitid =p.produitid
 join fournisseur f on p.fournisseurid = f.fournisseurid ;
 
 -- Bon déja il faut obtenir les 3 produits les plus vendus :
--- puis ensuite appliquer une restriction sur la période et le fournisseur...
+
 create view V_top3ventes as 
 select * 
 from ( 
   select sum(vf.quantite) as nb_vente,vf.nom as nom_produit, vf.produitid,vf.fournisseurid
   from V_Vente_Fournisseur vf
+  -- puis ensuite appliquer une restriction sur la période et le fournisseur...
   -- a retirer si on veut le top3 des ventes en général
   where vf.fournisseurid= 2
   and vf.datecommande between TO_DATE('2025-12-01','YYYY-MM-DD') and TO_DATE('2025-12-26','YYYY-MM-DD')
@@ -214,15 +215,15 @@ que local ? Et pour un pays en particulier ?
 */
 -- ressemble beaucoup aux requête précédentes... notamment la n°4 mais en uttilisant cette fois VC
 select *
-from (select sum(VC.quantite) as nb_achete,VC.produitid
+from (select sum(VC.quantite) as nb_achete,VC.produitid,CL.aLocal
 from v_vente_client VC
 join client CL on CL.clientid= VC.clientid
 join Produit P on P.produitid = VC.produitid -- chercher infos fournisseur du produit, jointure nécéssaire
 join fournisseur F on F.fournisseurid = P.fournisseurid
 where CL.aLocal =1 and F.pays='France' -- pour un pays en particulier... à retirer pour elargir.
-group by VC.produitid
-order by nb_achete DESC)
-where rownum <= 3;
+group by VC.produitid,CL.aLocal
+order by nb_achete DESC);
+--where rownum <= 3; optionnel pour obtenir le top3
 
 
 
@@ -231,17 +232,27 @@ where rownum <= 3;
 Quelle est la catégorie dont les articles sont les mieux notés en moyenne  ?
 */
 
-create view categorie_article as
-select *
-from(
-select avg(p.noteproduit) as moy_notes,cat.categorieid
-from produit p join categorie cat on
-p.categorieid = cat.categorieid
+-- ON va reutiliser V_Notes qu'on va joindre avec categorie..
+create view V_Note_Categorie as
+select V.clientid, V.produitid, V.nom_produit,V.note, cat.nom
+from V_Note V
+join produit p on p.produitid = V.produitid
+join categorie cat on cat.categorieid=p.categorieid 
+;
+-- puis on fait l'aggregat
+select avg(V2.note) as note_moy, V2.nom
+from V_Note_Categorie V2
+group by V2.nom
+order by note_moy DESC ;
+
 group by cat.categorieid
 order by moy_notes DESC)
-where rownum <=3 ;
+where rownum <=1 ; -- pour obtenir LA categorie ayant la meilleure moyenne de notes...
+
+
 /*
 --Requête n°10
-
+Quelles sont les 3 catégories dont le plus de produits ont été vendus ce dernier mois  ?
+Encore un top3... hereusement je peux carrément
 */
 

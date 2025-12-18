@@ -3,8 +3,12 @@ select table_name from user_tables ;
 select * from commande ;
 select * from SouhaiteAcheter ;
 select * from produitcommande ;
-select * from categorie ;
+select * from categorie cat join souscategorie scat
+on cat.categorieid = scat.categorieid;
+
 select * from produit ;
+select * from noteproduit ;
+
 select * from RecommandationProduit ;
 select * from Produit ;
 CREATE VIEW V_Vente_Client AS

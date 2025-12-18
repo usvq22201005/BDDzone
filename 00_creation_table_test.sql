@@ -53,7 +53,7 @@ create table CategorieSousCategorie(
 );
 
 --2.	Produit (ProduitId, FournisseurId, CategorieId,
--- SousCategorieId, Nom, Prix, NoteProduit) 
+-- SousCategorieId, Nom, Prix) 
 create table Produit (
     ProduitId number(6),
     FournisseurId number(5),
@@ -61,7 +61,6 @@ create table Produit (
     SousCategorieId number(5),
     Nom varchar(50),
     Prix number(10,2),  -- Valeur max=99999999.99
-    NoteProduit number(2),
     constraint PK_Produit primary key (ProduitId),
     constraint FK_Produit_Fournisseur
         foreign key (FournisseurId)
