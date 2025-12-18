@@ -481,12 +481,24 @@ from NoteProduit NP
 group by NP.produitid
 ;
 
-/* pour visualiser
-create view produit_achete_client as
-select clientid, produitid
-from V_Vente_Client VC ;
+
+-- et enfin la requête :5 clients qui ont le plus grand écart 
+--entre la note moyenne qu’ils laissent et la note moyenne des produits qu’ils achètent 
+select * from (
+select pac.clientid, nl.moy_note as note_moy_client,pac.produitid,
+nm.moy_prod, 
+ABS(nl.moy_note - nm.moy_prod) as diff
+from produit_achete_client pac 
+join note_laisse nl
+on pac.clientid = nl.clientid 
+join note_moy nm on pac.produitid =
+nm.produitid 
+order by diff DESC
+)
+where rownum <= 5; -- 5 clients
+
+/*
+Requête n°19
+Quels clients ont reçu une recommandation 
+contenant au moins un produit qu’ils avaient déjà acheté ?
 */
--- et enfin la requête :
-select *
-from produit_achete_client pac join note_laisse nl
-on pac.clientid = nl.clientid ;
