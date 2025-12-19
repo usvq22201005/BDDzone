@@ -1,7 +1,7 @@
 -- VUES CLIENT : réalisé par Yusuf DUMLUPINAR
 
 -- Voir les articles dans le panier
-CREATE VIEW Vue_Client_Panier AS
+CREATE OR REPLACE VIEW Vue_Client_Panier AS
 SELECT
     sa.ClientId,
     p.ProduitId,
@@ -9,11 +9,11 @@ SELECT
     sa.Quantite,
     sa.Prix
 FROM SouhaiteAcheter sa
-JOIN Produit p
-    ON sa.ProduitId = p.ProduitId;
+JOIN Produit p ON sa.ProduitId = p.ProduitId
+WHERE sa.ClientId = SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER');
 
--- Voir les articles recommandés
-CREATE VIEW Vue_Client_Articles_Reco AS
+-- Voir les articles de sa dernière recommandation
+CREATE OR REPLACE VIEW V_Client_Recommandation_Recente AS
 SELECT
     r.ClientId,
     rp.ProduitId,
@@ -23,10 +23,16 @@ FROM Recommandation r
 JOIN RecommandationProduit rp
     ON r.RecommandationId = rp.RecommandationId
 JOIN Produit p
-    ON rp.ProduitId = p.ProduitId;
+    ON p.ProduitId = rp.ProduitId
+WHERE r.ClientId = SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER')
+AND r.DateHeure = (
+    SELECT MAX(r2.DateHeure)
+    FROM Recommandation r2
+    WHERE r2.ClientId = r.ClientId
+);
 
 -- Voir la liste de tous les articles qui ont été recommandés et quand
-CREATE VIEW Vue_Client_Histo_Reco AS
+CREATE OR REPLACE VIEW Vue_Client_Histo_Reco AS
 SELECT
     r.ClientId,
     r.RecommandationId,
@@ -34,33 +40,32 @@ SELECT
     p.Nom AS NomProduit,
     r.DateHeure
 FROM Recommandation r
-JOIN RecommandationProduit rp
-    ON r.RecommandationId = rp.RecommandationId
-JOIN Produit p
-    ON rp.ProduitId = p.ProduitId;
+JOIN RecommandationProduit rp ON r.RecommandationId = rp.RecommandationId
+JOIN Produit p ON rp.ProduitId = p.ProduitId
+WHERE r.ClientId = SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER');
 
 -- Voir les dépenses totales
-CREATE VIEW Vue_Client_Depenses_Totales AS
+CREATE OR REPLACE VIEW Vue_Client_Depenses_Totales AS
 SELECT
     ClientId,
     SUM(PrixTotal) AS DepensesTotales
 FROM Commande
+WHERE ClientId = SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER')
 GROUP BY ClientId;
 
-
 -- Voir la liste de ses favoris
-CREATE VIEW Vue_Client_Favoris AS
+CREATE OR REPLACE VIEW Vue_Client_Favoris AS
 SELECT
     f.ClientId,
-    f.CategorieId,
+    csc.CategorieId,
     c.Nom AS NomCategorie,
-    f.SousCategorieId,
+    csc.SousCategorieId,
     sc.Nom AS NomSousCategorie
 FROM Favori f
-LEFT JOIN Categorie c
-    ON f.CategorieId = c.CategorieId
-LEFT JOIN SousCategorie sc
-    ON f.SousCategorieId = sc.SousCategorieId;
+JOIN CategorieSousCategorie csc ON f.CategorieSousCategorieId = csc.CSCId
+LEFT JOIN Categorie c ON csc.CategorieId = c.CategorieId
+LEFT JOIN SousCategorie sc ON csc.SousCategorieId = sc.SousCategorieId
+WHERE f.ClientId = SYS_CONTEXT('USERENV','CLIENT_IDENTIFIER');
 
 -- Voir les produits les mieux notés
 CREATE VIEW Vue_Produits_Mieux_Notes AS
