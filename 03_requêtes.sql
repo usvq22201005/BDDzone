@@ -712,6 +712,3 @@ join souscategorie SCat on C2.souscategorieid=SCat.souscategorieid
 group by C2.souscategorieid ,SCat.nom
 
 ;
-
-select * from  CentreDInteret ;
-
