@@ -1,0 +1,15 @@
+LOAD DATA
+INFILE 'Client.csv'
+INTO TABLE Client
+APPEND
+FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+TRAILING NULLCOLS
+(
+  ClientId,
+  NomUtilisateur,
+  Nom,
+  Prenom,
+  Adresse,
+  Pays,
+  Local "DECODE(:Local, 'True', 1, 0)"
+)
