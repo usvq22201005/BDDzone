@@ -12,12 +12,12 @@ TO role_client;
 
 -- Les CLients peuevent seulement lire les arctilcles recommandés
 GRANT SELECT
-ON Vue_Client_Articles_Recommandes
+ON Vue_Client_Articles_Reco
 TO role_client;
 
 -- Les Clients peuvent seuelement lire l'Historique des recommandations
 GRANT SELECT
-ON Vue_Client_Historique_Recommandations
+ON Vue_Client_Histo_Reco
 TO role_client;
 
 -- Les Clients peuvent seuelement lire les dépenses

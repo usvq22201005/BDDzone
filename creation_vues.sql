@@ -13,7 +13,7 @@ JOIN Produit p
     ON sa.ProduitId = p.ProduitId;
 
 -- Voir les articles recommandés
-CREATE VIEW Vue_Client_Articles_Recommandes AS
+CREATE VIEW Vue_Client_Articles_Reco AS
 SELECT
     r.ClientId,
     rp.ProduitId,
@@ -26,7 +26,7 @@ JOIN Produit p
     ON rp.ProduitId = p.ProduitId;
 
 -- Voir la liste de tous les articles qui ont été recommandés et quand
-CREATE VIEW Vue_Client_Historique_Recommandations AS
+CREATE VIEW Vue_Client_Histo_Reco AS
 SELECT
     r.ClientId,
     r.RecommandationId,
