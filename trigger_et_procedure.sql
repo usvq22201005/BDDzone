@@ -114,7 +114,7 @@ FOR EACH ROW
 BEGIN
     UPDATE Produit
     SET NoteProduit = (
-        SELECT AVG(Note)
+        SELECT ROUND(AVG(Note),1)
         FROM NoteProduit
         WHERE ProduitId = :NEW.ProduitId
     )
@@ -129,7 +129,7 @@ FOR EACH ROW
 BEGIN
     UPDATE Fournisseur
     SET NoteFournisseur = (
-        SELECT AVG(NoteProduit)
+        SELECT ROUND(AVG(Note),1)
         FROM Produit
         WHERE FournisseurId = :NEW.FournisseurId
     )
