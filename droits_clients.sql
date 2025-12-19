@@ -44,11 +44,19 @@ TO role_client;
 -- Les Fournisseur n'ont droit que de lecture sur leurs vues
 GRANT SELECT ON V_Fournisseur_VolumesVente TO role_fournisseur;
 GRANT SELECT ON V_Fournisseur_CA TO role_fournisseur;
-GRANT SELECT ON V_Produits_PlusVendus TO role_fournisseur;
 
 -- Les Administrateur ont simplement tous les droits (ATTENTION il faut donc bien choisir qui est Administrateur)
 GRANT SELECT ON ALL TABLES TO role_admin;
 GRANT SELECT ON ALL VIEWS TO role_admin;
+
+
+-- Les vues d'information générale sont accessibles à tous :
+
+GRANT SELECT ON V_Produits_PlusVendues_Global TO PUBLIC;
+GRANT SELECT ON V_CA_ParFournisseur TO PUBLIC;
+GRANT SELECT ON V_CA_Total TO PUBLIC;
+GRANT SELECT ON V_Clients_Actifs_30J TO PUBLIC;
+
 
 Script à exécuter pour voir les vues en tant que fournisseur/client :
 
