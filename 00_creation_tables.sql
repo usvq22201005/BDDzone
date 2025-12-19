@@ -67,7 +67,7 @@ create table Produit (
     constraint FK_Produit_Fournisseur
         foreign key (FournisseurId)
         references Fournisseur(FournisseurId),
-    constraint FK_Produit_CategorieSousCategorie
+    constraint FK_Produit_CSC
         foreign key (CategorieSousCategorieId)
         references CategorieSousCategorie(CSCId)
 );
