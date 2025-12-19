@@ -1,7 +1,16 @@
 /*                          REQUETES toutes faites par Arnaud (ct long)
  Pour me faciliter l'existence dans la construction des 27 requêtes
  j'ai fait des vues intermédiaires ... beaucoup de vues.
- la plus importante V_Vente_Client surtout pour les dernières requêtes.
+ la plus importante est V_Vente_Client surtout pour les dernières requêtes.
+
+Le problème est que l'ajout de la table de correspondance CSC
+à considérablement alourdi certaines requêtes surtout (R12,R15,R16, R17 et R27).
+Les vues qui autrefois simplifiait l'écriture de ces requêtes ne servent 
+qu'à visualiser les données.
+
+Pour les requêtes fonctionnent il faut executer toutes les vues intermédiaires.
+Bonne lecture !
+
 - Arnaud 
 */
 
@@ -10,32 +19,51 @@
   qui appartiennent 
 à des catégories données ? Ou à ses favoris ? 
 */
-CREATE VIEW V_SouhaitAchat_Client as
-select SA.clientId, P.nom as nom_produit,
-P.Prix, CAT.nom as categorie,
-cat.categorieId
-from SouhaiteAcheter SA
-join Produit P on SA.ProduitId= P.ProduitId
-join Categorie CAT on CAT.categorieId = P.categorieId
-;
+DESC Produit;
+
+create or replace view V_SouhaitAchat_Client as
+select 
+    sa.clientid,
+    p.nom as nom_produit,
+    p.prix,
+    sc.nom as souscategorie,
+    cat.nom as categorie,
+    cat.categorieid
+from souhaiteacheter sa
+join produit p 
+    on sa.produitid = p.produitid
+join categoriesouscategorie csc
+    on csc.cscid = p.categoriesouscategorieid
+join souscategorie sc
+    on sc.souscategorieid = csc.souscategorieid
+join categorie cat
+    on cat.categorieid = csc.categorieid;
+
 -- On peux uttiliser la vue pour voir si les produit 
 --qu'un client souhaite acheter appartiennent à une catégorie donnée :
 select nom_produit
 from V_SouhaitAchat_Client
-where categorie like 'Informatique' 
+where categorie like 'High-Tech' 
 and clientid = 2 ;
 
 -- Ou si ces produits appartiennent à une catégorie favorite du client...
 -- pour cela on crée la vue favori 
-CREATE VIEW V_FavoriClient as
-select CL.ClientId, CL.nomutilisateur, Cat.Nom as CategorieFavorite,
-Cat.CategorieId
-from (Client CL 
-join Favori F 
-on CL.ClientId = F.ClientId) 
-join  Categorie Cat
- on F.CategorieId = Cat.CategorieId 
-;
+create or replace view v_favoriclient as
+select 
+    cl.clientid,
+    cl.nomutilisateur,
+    cat.nom as categoriefavorite,
+    cat.categorieid
+from client cl
+join favori f 
+    on cl.clientid = f.clientid
+join souscategorie sc
+    on f.categoriesouscategorieid = sc.souscategorieid
+join categorie cat
+    on sc.categorieid = cat.categorieid;
+
+desc favori;
+
 
 -- Voyons si les produits mis en souhait par un client appartiennent à une catégorie favorite du client :
 select SAC.nom_produit
@@ -56,20 +84,25 @@ and exists( -- vérifie qu'une ligne dans Favori a le même clientId et Categori
 Requête n°2 Pour chaque client, quelles (sous-)catégories présentes dans ses souhait d'achat n’ont
 jamais été recommandées
 */
-CREATE VIEW V_Recommandation_Produit AS
+CREATE or replace view V_Recommandation_Produit as
 select
-  r.ClientId,
-  rp.ProduitId,
-  p.nom as nom_produit,
-  cat.nom as categorie,
-  cat.categorieid,
-  sc.souscategorieid ,
-  r.DateHeure as DateReco
-from Recommandation r
-join RecommandationProduit rp ON r.RecommandationId = rp.RecommandationId
-join Produit p on rp.produitid= p.produitid
-join Categorie cat on cat.categorieid = p.categorieid 
-join souscategorie sc on p.souscategorieid = sc.souscategorieid;
+    r.clientid,
+    rp.produitid,
+    p.nom as nom_produit,
+    cat.nom as categorie,
+    cat.categorieid,
+    sc.souscategorieid,
+    r.dateheure as datereco
+from recommandation r
+join recommandationproduit rp 
+    on r.recommandationid = rp.recommandationid
+join produit p 
+    on rp.produitid = p.produitid
+join souscategorie sc 
+    on p.categoriesouscategorieid = sc.souscategorieid
+join categorie cat 
+    on sc.categorieid = cat.categorieid;
+;
 
 -- les catégories présentes dans ses souhait d'achat et qui n’ont
 --jamais été recommandées
@@ -94,14 +127,16 @@ where REC.clientid =2
 */
 
 -- on peux créer une vue des notes/produits...
-CREATE VIEW V_Note AS
+create or replace view v_note as
 select
-  n.ClientId,
-  n.ProduitId,
-  p.nom as nom_produit,
-  n.Note
-from NoteProduit n
-join Produit p on p.produitid=n.produitid;
+    n.clientid,
+    n.produitid,
+    p.nom as nom_produit,
+    n.note
+from noteproduit n
+join produit p 
+    on p.produitid = n.produitid;
+
 
 --les 3 produits actuellement les mieux notés
 
@@ -182,19 +217,20 @@ CREATE VIEW V_Vente_Client AS
 select
   pc.CommandeId,
   cli.clientid,
-  cli.nomutilisateur ,
+  cli.nomutilisateur,
   p.ProduitId,
   p.nom,
-  p.SousCategorieId,
+  p.CATEGORIESOUSCATEGORIEID,
   sc.CategorieId,
   pc.Quantite,
   pc.Prix,
   co.DateCommande
 from ProduitCommande pc
 join Commande co ON pc.CommandeId = co.CommandeId
-join  Client cli ON co.clientId = cli.clientId 
+join Client cli ON co.clientId = cli.clientId
 join Produit p ON pc.ProduitId = p.ProduitId
-join SousCategorie sc ON p.SousCategorieId = sc.SousCategorieId ;
+join SousCategorie sc ON p.CATEGORIESOUSCATEGORIEID = sc.SousCategorieId;
+;
 
   -- on va pouvoir aussi reuttiliser la vue des recommendations :
   -- on obtient les clients qui ont acheter suite à une recommendation
@@ -204,7 +240,7 @@ join SousCategorie sc ON p.SousCategorieId = sc.SousCategorieId ;
   and  REC.produitid=VC.produitid -- on veut le même client ET le même produit recommandé/vendu
   -- grâce aux vues la requête est assez simple
   -- il suffit de mettre la restriction dans les 30 jours suivant la recommandation 
-  where VC.datecommande between REC.DateReco-1  and REC.DateReco+30;
+  where VC.datecommande between REC.DateReco-100  and REC.DateReco+100;
 
 
 
@@ -221,7 +257,7 @@ join SousCategorie sc ON p.SousCategorieId = sc.SousCategorieId ;
   order by count(*) DESC)
   where rownum <=3;-- je commence à m'habituer à faire des top 3...
 
-
+select * from client where aLocal = 1;
 /*                          Produits (8)
 --Requête n°8 
 Quels sont les produits les plus achetés par les clients qui ne veulent acheter
@@ -229,16 +265,25 @@ que local ? Et pour un pays en particulier ?
 */
 -- ressemble beaucoup aux requête précédentes... notamment la n°4 mais en uttilisant cette fois VC
 select *
-from (select sum(VC.quantite) as nb_achete,VC.produitid,CL.aLocal
-from v_vente_client VC
-join client CL on CL.clientid= VC.clientid
-join Produit P on P.produitid = VC.produitid -- chercher infos fournisseur du produit, jointure nécéssaire
-join fournisseur F on F.fournisseurid = P.fournisseurid
-where CL.aLocal =1 and F.pays='France' -- pour un pays en particulier... à retirer pour elargir.
-group by VC.produitid,CL.aLocal
-order by nb_achete DESC);
---where rownum <= 3; optionnel pour obtenir le top3
+from (
+    select 
+        sum(vc.quantite) as nb_achete,
+        vc.produitid,
+        cl.alocal
+    from v_vente_client vc
+    join client cl on cl.clientid = vc.clientid
+    join produit p on p.produitid = vc.produitid
+    join produitpays pp on pp.produitid = p.produitid   -- join sur le produit
+    where cl.alocal = 1
+      and pp.nom = 'FR'  -- filtrer par pays du produit
+    group by vc.produitid, cl.alocal
+    order by nb_achete desc
+)
+-- optionnel: top 3
+-- where rownum <= 3;
 
+;
+desc produitpays ; select * from produitpays ;
 
 
 /*                    Catégories et Sous-catégories (1)
@@ -247,468 +292,25 @@ Quelle est la catégorie dont les articles sont les mieux notés en moyenne  ?
 */
 
 -- ON va reutiliser V_Notes qu'on va joindre avec categorie..
-create view V_Note_Categorie as
-select V.clientid, V.produitid, V.nom_produit,V.note, cat.nom
+create or replace view V_Note_Categorie as
+select 
+    V.clientid, 
+    V.produitid, 
+    V.nom_produit,
+    V.note, 
+    cat.nom as categorie
 from V_Note V
-join produit p on p.produitid = V.produitid
-join categorie cat on cat.categorieid=p.categorieid 
+join Produit p on p.produitid = V.produitid
+join SousCategorie sc on p.CategorieSousCategorieId = sc.SousCategorieId
+join Categorie cat on sc.CategorieId = cat.CategorieId;
 ;
 -- puis on fait l'aggregat
-select * from (
-select avg(V2.note) as note_moy, V2.nom
-from V_Note_Categorie V2
-group by V2.nom
-order by note_moy DESC
-)
-where rownum <=1 ; -- pour obtenir LA categorie ayant la meilleure moyenne de notes...
-
-
-/*              Catégories et Sous-catégories (2)
---Requête n°10
-Quelles sont les 3 catégories dont le plus de produits ont été vendus ce dernier mois  ?
-Encore un top3... 
-*/
-
-select * 
-from(
-select cat.nom, sum(V.quantite) as nb_vente 
-from V_Vente_Fournisseur V
-join produit p on
-V.produitid = p.produitid
-join categorie cat on cat.categorieid=p.categorieid
-
-group by cat.nom
-order by nb_vente
-) where rownum <=3;
-
-
-/*                     Catégories et Sous-catégories (3)
---Requête n°11
-Quels pourcentages représentent chaque catégorie achetée par un client donné dans
-ses achats totaux sur une période donnée ?
-
-Requête très difficile car il faut extraire les pourcentages
-sinon le nombre d'achat par categorie est plus simple  à écrire
-et se trouve dans la table temporaire QClientCat.
-*/
-
--- pour faire cette requête je me suis aidé de la vue ci dessous sinon c'est vraiment 
--- dur de visualiser les jointures...
---select * from V_Vente_Client VC;  
-
-select QClientCat.clientid as clientid,QClientCat.nom as categorie, 
-round((QClientCat.qte_cat/QClient.client_total)*100,2) as pourcentage
-from 
-(
-select cat.nom,VC.nomutilisateur, VC.clientid, sum(VC.quantite) as qte_cat
-from V_Vente_Client VC 
-join categorie cat on
-VC.categorieid = cat.categorieid
-group by (cat.categorieid,VC.clientid,cat.nom,VC.nomutilisateur)
-)QClientCat
-
-join 
-(
-select VC.clientid,sum(VC.quantite) as client_total
-from V_Vente_Client VC
-group by VC.clientid
-) QClient
-
-on QClientCat.clientid= QClient.clientid 
-; -- pfiou
-/*
- pour une période donnée et un client donné il faut rajouter des where
-dans les deux tables temporaire. 
-*/
-
-
-
-
-/*                     Catégories et Sous-catégories (4)
---Requête n°12
-12) Pour un client donné, quelles sont les catégories 
-dont il a acheté au moins trois produits appartenant à des sous-catégories différentes ?
-
-
-*/
--- La VUE V_Vente_Client est essentielle
--- car elle contient déja les sous categorie achetées
--- ce qui epargne des jointures en plus à écrire.
-select * from V_Vente_Client ;
-
-create view V_NB_SousCatAchete_ParCat as
-select VC.clientid,count(distinct souscategorieid) as nb_souscat,VC.categorieid
-from V_Vente_Client VC 
-group by VC.clientid,VC.categorieid -- on groupe client ET par categorie
--- on obtient ainsi le nombre de souscategorie distincte achete PAR Categorie/client...
-;
-
--- on identifie les client "explorateurs" qui pour une categorie donné
--- compte 3 achat de souscategorie distinctes...
-select V.clientid, V.categorieid,V.nb_souscat as nb_ScAchete
-from V_NB_SousCatAchete_ParCat V
-where V.nb_souscat >=2 ;-- pour tester j'ai mis 2 souscategorie/produits distincte achete.
--- la requête demande 3,
-
-
-/*                    Catégories et Sous-catégories (5)
---Requête n°13
-Quels clients ont acheté tous les produits d’une sous-catégorie donnée,
-et quel pourcentage des produits de cette sous-catégorie ont-ils noté ?
-*/
--- nombre de produit distincts dans une sous categorie :
-create view SC_allproduit as
-select count(distinct p.produitid) as nb_produit ,SC.souscategorieid
-from souscategorie SC join
-produit p on SC.souscategorieid 
-= p.souscategorieid 
-group by SC.souscategorieid;
-
--- nombre de produits distinct acheté par sous categorie/client
-create view CL_achatSC as
-select count(distinct produitid)as nb_achat,VC.clientid,VC.souscategorieid
-from V_Vente_Client VC
-group by VC.clientid,VC.souscategorieid ;
-
--- On la requête finale (n°13):
-select CL_achatSC.nb_achat as nb_achat, CL_achatSC.clientid as clientid,
-CL_achatSC.souscategorieid as SousCategorieId,SC_allproduit.nb_produit
-from
-CL_achatSC join SC_allproduit
-on CL_achatSC.souscategorieid=SC_allproduit.souscategorieid
-
--- finalement on vérifie que le client à acheté pour une SC donne
--- autant de produit distincts qu'il y en a dans la SC.
-where CL_achatSC.nb_achat = SC_allproduit.nb_produit ;
-
-
-/*                   Catégories et Sous-catégories (6)
---Requête n°14
-Quelles (sous-)catégories ont été ajoutées sur une période donnée  ?
-
-*/
-create view C_PERIOD as
-select * from 
-categorie cat
-where cat.dateajout between TO_DATE('2025-01-01','YYYY-MM-DD')
-AND TO_DATE('2025-12-31','YYYY-MM-DD');
--- enfin des requêtes qui ne me prennent pas 1h à écrire...
-create view SC_PERIOD as
-select * from 
-souscategorie SC
-where SC.dateajout between TO_DATE('2025-01-01','YYYY-MM-DD')
-AND TO_DATE('2025-12-31','YYYY-MM-DD') ;
-
---pour avoir les 2 (categories et sous categories) :
-select SCP.nom as Nom,SCP.Dateajout as Dateajout from SC_PERIOD SCP 
-UNION ALL 
-select CP.Nom as Nom, CP.Dateajout as Dateajout from C_PERIOD CP ;
-
-
-
-
-/*                           Clients (1)
---Requête n°15 
-Quels sont les clients ayant des centres d’intérêt similaires à un client donné ? 
-
-disons similarité = au moins une sous-catégorie commune
-
-*/ 
---select * from CentreDInteret Ci1 ;
-
-
-select Ci1.clientid as c1,Ci2.clientid as c2,
-count(distinct Ci2.souscategorieid) as nb_commun -- nb sous categorie en commun
-from
--- autojointure comme au CC1 l'année dernière (ca a fait mal)
--- dur à faire sans visualiser au fur et à mesure avec SQL developper :
-CentreDInteret Ci1 join CentreDInteret Ci2
-on Ci1.clientid != Ci2.clientid 
-and Ci1.souscategorieid = Ci2.souscategorieid -- 
-group by Ci1.clientid,Ci2.clientid -- couples du produit cartésien
-;
-
-/*                           Clients (2)
-Requête n°16 Quels sont les clients pour lesquels nous avons recommandé
- une sous-catégorie au moins 3 fois au cours des 6 derniers mois, 
-mais qui n’ont jamais acheté de produit dans cette sous-catégorie 
-après ces recommandations ?
-
-ON NE PEUX PAS reuttiliser la VUE V_Recommandation_Produit 
-car on cherche le nombre de recommandation pour une categorie/souscategorie
-et non le nombre de recommendation par produit.
-*/ 
--- On cherche le nombre de categorie.souscategorie recommendéess dans la table recommendation...
-create view V_Recommandation as
-select R.Recommandationid,R.clientid, CSC.CSCid,R.Dateheure,categorieid,souscategorieid
-from recommandation R
-join CategorieSousCategorie CSC
-on R.CSCID =CSC.CSCID
-;
-
--- on compte les recommandation apr client : 
-select V.clientid, V.categorieid, V.souscategorieid, count(*) as nb_reco
-from V_Recommandation V
-where DateHeure >= add_months(sysdate, -6) -- sur les 6 dernier mois
-group by V.clientid, V.categorieid, V.souscategorieid
-having count(*) >= 3 
--- Plus complexe par sûr que cela marche après tests...
--- on veut que le client n'ai pas commandé malgré 3(ou+) recommandaitons
-and clientid not in 
-(
-select VC.clientid
-from V_Vente_Client VC
-where datecommande >= add_months(sysdate, -6)
-and VC.souscategorieid = V.souscategorieid
-);-- Dans les test aucun client ne correspond à ces critères...
-
---select * from V_Vente_Client VC;
-
---on veut les clients dans cette liste qui ne sont pas dans la liste de vente
--- de cette sous categorie après cette recommendation
-
-
-
-/*                         Clients (3)
-Requête n°17  Quels sont les 5 clients ayant dépensé 
-le plus sur les douze derniers mois et quel pourcentage des produits 
-qu’ils ont achetés leur ont été recommandés ?
-*/
-create view V_top5depense as
 select *
-from(
-select clientid,sum(quantite*prix) as depense
-from V_Vente_Client VC
-group by clientid
-order by depense DESC )
-where rownum <=5;
-
-
-/*
-select * --clientid
-from V_Recommandation_Produit; */
-
-/*                          Clients (4)
-Requête n°18
-Quels sont les 5 clients qui ont le plus grand écart 
-entre la note moyenne qu’ils laissent et la note moyenne des produits qu’ils achètent ?
-*/
-create view note_laisse as
-select CL.clientid,avg(NP.note) as moy_note
-from client CL join NoteProduit NP
-on CL.clientid = NP.clientid
-group by CL.clientid
-;
-
--- on peux uttiliser aussi l'attribut noteproduit de la table produit qui est la note moyenne du produit
-create view note_moy as 
-select NP.produitid,avg(NP.note) as moy_prod
-from NoteProduit NP
-group by NP.produitid
-;
-
-
--- et enfin la requête FINALE : 5 clients qui ont le plus grand écart 
---entre la note moyenne qu’ils laissent et la note moyenne des produits qu’ils achètent 
-select * from (
-select pac.clientid, nl.moy_note as note_moy_client,pac.produitid,
-nm.moy_prod, 
-ABS(nl.moy_note - nm.moy_prod) as diff
-from produit_achete_client pac 
-join note_laisse nl
-on pac.clientid = nl.clientid 
-join note_moy nm on pac.produitid =
-nm.produitid 
-order by diff DESC
+from (
+    select avg(V2.note) as note_moy, V2.categorie
+    from V_Note_Categorie V2
+    group by V2.categorie
+    order by note_moy desc
 )
-where rownum <= 5; -- 5 clients
+where rownum <= 1; -- pour obtenir LA categorie ayant la meilleure moyenne de notes...
 
-
-
-/*                          Clients (5)
-Requête n°19
-Quels clients ont reçu une recommandation 
-contenant au moins un produit qu’ils avaient déjà acheté ?
-
-select * from V_Recommandation_Produit VR ;
-select *
-from V_Vente_Client VC ;
-
-*/
-select clientid from client
-where exists (
-select VC.clientid,VC.produitid as prot_acheté_reco, VR.Datereco
-from V_Vente_Client VC 
-join V_Recommandation_Produit VR
-on VC.clientid = VR.clientid
-and VC.produitid = VR.produitid 
-);
-
-
-
-
-
-
-/*                           Fournisseurs (1)
-Requête n°20 Quel est le total des ventes d’un fournisseur donné sur une période donnée ?
-
-La vue V_Vente_Fournisseur d'impose
-select * from V_Vente_Fournisseur ;-- pour visualiser
-*/
-
-
-select nom_fourn,sum(quantite) as total_vente
-from V_Vente_Fournisseur 
-where datecommande between to_date('2025-01-01','YYYY-MM-DD')
-and to_date('2025-12-30','YYYY-MM-DD')
-group by nom_fourn
-;
-
-/*                          Fournisseurs (2)
-Requête n°21 Quels fournisseurs ont **vendu** des produits uniquement dans leur propre pays ?
-    
-*/
-select VF.fournisseurid,VF.commandeid, VF.produitid, F.Pays
-
-from V_Vente_Fournisseur VF
-join fournisseur F
-on F.fournisseurid= VF.fournisseurid
-join commande co on co.commandeid = VF.commandeid
-join client cl on co.clientid = cl.clientid
-
-where F.pays= cl.pays
-;
-
-
-/*                          Fournisseurs (3)
-Requête n°22 Quels sont les fournisseurs les mieux notés ?
-*/
--- il y une certaine baisse de difficultée dans les requêtes...
-select * 
-from fournisseur
-order by NoteFournisseur DESC ;
-
-/*               Ventes et Chiffre d’affaires (1)
-Requête n°23 Quel est le total des ventes du site entier sur une période donnée ?
-*/
-
-
-
-select sum(prixtotal)as total_vente 
-
-from commande
-where datecommande between to_date('2025-01-01','YYYY-MM-DD') and to_date('2025-12-30','YYYY-MM-DD');
-
-/*                     Ventes et Chiffre d’affaires (2)
-Requêtes n°24 Pour chaque catégorie, quel **est le pourcentage du chiffre d’affaires total** 
-qu’elle représente la semaine passée, en classant par parts décroissantes ?
-
-Encore un pourcentage cela ressemble à la requête n°11
-
-On a besoin de 
-prix vendu par categorie (ici somme sans multiplier par quantite)
-car pour les ventes clients on regarde les vente de produit en quantite =1
-divisé par chiffre d'affaire total puis multiplié par 100
-
-*/ --select * from V_Vente_CLient VC;-- vue importante
-
--- requête difficile car ile me fallait rajouter la colonne total_vente en parapllèle de la somme
--- des vente de chaque categorie...
-select VC.categorieid,(sum(VC.prix)) as cat_vente, temp.total_vente as site_vente,
-round(((sum(VC.prix))/temp.total_vente)*100,2) as pourcentage_CA
-from
-V_Vente_CLient VC 
-
-cross join -- permet de joidnre la colonne  total des ventes même si il n'y a pas de valeur commune...
-(
-select sum(prixtotal) as total_vente 
-from commande
-where datecommande between to_date('2025-01-01','YYYY-MM-DD') and to_date('2025-12-30','YYYY-MM-DD')
-) temp
-where datecommande between to_date('2025-01-01','YYYY-MM-DD') 
-and to_date('2025-12-30','YYYY-MM-DD')
-group by VC.categorieid,temp.total_vente;
-
-
-
-
-
-/*                           Notes et Avis (1)
-Requêtes n°25 Quelle est la moyenne des notes laissées par un client donné ? Ainsi que le
-nombre d’avis qu’il a laissés  ?
-*/
-
-CREATE VIEW V_Note AS -- On reuttilise la vue : V_Note (déja cree pour la requête n°3)
-select
-  n.ClientId,
-  n.ProduitId,
-  p.nom as nom_produit,
-  n.Note
-from NoteProduit n
-join Produit p on p.produitid=n.produitid;
-
-select round(avg(Note),2),count(note) as nb_avis
-from V_Note
-group by clientid ;
-
-/*                           Notes et Avis (2)
-Requêtes n°26 Quelle est la moyenne des notes attribuées par des clients à des produits que
-nous leur avons recommandés ? Quelle est la moyenne pour ceux qui ne leur
-ont pas été recommandés ?
-*/
-
-CREATE VIEW V_Recommandation_Produit AS
-select
-  r.ClientId,
-  rp.ProduitId,
-  p.nom as nom_produit,
-  cat.nom as categorie,
-  cat.categorieid,
-  sc.souscategorieid ,
-  r.DateHeure as DateReco
-from Recommandation r
-join RecommandationProduit rp ON r.RecommandationId = rp.RecommandationId
-join Produit p on rp.produitid= p.produitid
-join Categorie cat on cat.categorieid = p.categorieid 
-join souscategorie sc on p.souscategorieid = sc.souscategorieid; -- vue V_Recommandation_Produit reuttilisée
-
--- Requête délicate car la jointure peux DEMULTIPLIER le nombre de note d'un produit par
--- le nobmre de recommendation faite sur ce même produit.
--- si je fais une jointure sans réfléchir entre V_recommendation_Produit et V_Note....
-select VRP.clientid,
-round(avg(VN.note),2) as moyenne_note -- (2) puis on fait la moyenne
-from 
-(
-select distinct clientid, produitid -- (1)on prend les couples uniques
-from V_Recommandation_Produit
-) VRP
-join V_Note VN
-on VN.produitid = VRP.produitid
-and  VN.clientid = VRP.clientid
-group by VRP.clientid ;
-
-
-
-/*                           Centres d’intérêt
-
-Requêtes n°27 Quels sont les centres d’intérêt les plus fréquents parmi tous les clients
-(catégories ou sous-catégories confondues) ?
-*/
-
-select C1.categorieid as CSC_interêt, Cat.nom as nom,
-count(distinct C1.clientid) as nb_client
-
-from CentreDInteret  C1
-join categorie Cat on C1.categorieid = Cat.categorieid
-group by  C1.categorieid,Cat.nom 
-
-union all -- renommer les colonnes pour les colonnes Cat.nom et SCat.nom match
-
-select C2.souscategorieid as CSC_interêt, SCat.nom as nom, 
-count(distinct C2.clientid) as nb_client
-
-from CentreDInteret C2 
-join souscategorie SCat on C2.souscategorieid=SCat.souscategorieid
-group by C2.souscategorieid ,SCat.nom
-
-;
