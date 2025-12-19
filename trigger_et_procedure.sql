@@ -126,15 +126,19 @@ END;
 -- La note d’un fournisseur est la moyenne des notes des produits qu’il vend
 CREATE OR REPLACE TRIGGER TR_Update_Note_Fournisseur
 AFTER UPDATE OF NoteProduit ON Produit
-FOR EACH ROW
 BEGIN
-    UPDATE Fournisseur
-    SET NoteFournisseur = (
-        SELECT ROUND(AVG(Note),1)
-        FROM Produit
-        WHERE FournisseurId = :NEW.FournisseurId
+    UPDATE Fournisseur f
+    SET f.NoteFournisseur = (
+        SELECT ROUND(AVG(p.NoteProduit), 1)
+        FROM Produit p
+        WHERE p.FournisseurId = f.FournisseurId
     )
-    WHERE FournisseurId = :NEW.FournisseurId;
+    -- On met à jour uniquement les fournisseurs dont les produits ont été modifiés
+    WHERE f.FournisseurId IN (
+        SELECT DISTINCT FournisseurId 
+        FROM Produit 
+        WHERE NoteProduit IS NOT NULL
+    );
 END;
 /
 
