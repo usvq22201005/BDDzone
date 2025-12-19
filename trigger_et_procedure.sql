@@ -10,19 +10,18 @@ CREATE OR REPLACE PROCEDURE Maj_Centre_Interet (
     v_nb_commande INTEGER;
     v_existe      INTEGER;
 BEGIN
-    -- Vérification préalable : inutile de calculer si le centre d'intérêt existe déjà
     SELECT COUNT(*) INTO v_existe 
     FROM CentreDInteret 
     WHERE ClientId = p_ClientId AND CategorieSousCategorieId = p_CSCId;
 
     IF v_existe = 0 THEN
-        -- 1. Produits dans le panier
+        -- Produits dans le panier
         SELECT COUNT(*) INTO v_nb_panier
         FROM SouhaiteAcheter sa
         JOIN Produit p ON sa.ProduitId = p.ProduitId
         WHERE sa.ClientId = p_ClientId AND p.CategorieSousCategorieId = p_CSCId;
 
-        -- 2. Produits achetés dans l'année
+        -- Produits achetés dans l'année
         SELECT COUNT(*) INTO v_nb_commande
         FROM Commande c
         JOIN ProduitCommande pc ON c.CommandeId = pc.CommandeId
@@ -31,17 +30,14 @@ BEGIN
           AND p.CategorieSousCategorieId = p_CSCId
           AND c.DateCommande >= ADD_MONTHS(SYSDATE, -12);
 
-        -- Logique métier
         IF v_nb_panier >= 3 OR v_nb_commande >= 1 THEN
             INSERT INTO CentreDInteret (ClientId, CategorieSousCategorieId)
             VALUES (p_ClientId, p_CSCId);
         END IF;
     END IF;
 EXCEPTION
-    WHEN DUP_VAL_ON_INDEX THEN NULL; 
-    WHEN OTHERS THEN 
-        DBMS_OUTPUT.PUT_LINE('Erreur Maj_Centre_Interet: ' || SQLERRM);
-        RAISE;
+    WHEN DUP_VAL_ON_INDEX THEN NULL;
+    WHEN OTHERS THEN RAISE;
 END;
 /
 
@@ -49,20 +45,24 @@ END;
 CREATE OR REPLACE TRIGGER TR_CentreInteret_Panier
 FOR INSERT ON SouhaiteAcheter
 COMPOUND TRIGGER
-
-    TYPE t_info IS TABLE OF Produit.CategorieSousCategorieId%TYPE INDEX BY PLS_INTEGER;
-    v_clients t_info; -- On indexe par ClientId pour stocker le CSCId
-    v_idx PLS_INTEGER := 1;
+    TYPE r_info IS RECORD (client_id NUMBER, csc_id NUMBER);
+    TYPE t_info IS TABLE OF r_info INDEX BY PLS_INTEGER;
+    v_stats t_info;
 
     AFTER EACH ROW IS
-        v_csc Produit.CategorieSousCategorieId%TYPE;
+        v_csc NUMBER;
     BEGIN
         SELECT CategorieSousCategorieId INTO v_csc FROM Produit WHERE ProduitId = :NEW.ProduitId;
-        
-        -- On stocke ClientId et CSCId (ici simplifié pour l'exemple)
-        Maj_Centre_Interet(:NEW.ClientId, v_csc); 
-        -- Note : Si erreur mutation persiste ici, utilisez la même structure de collection que le trigger précédent.
+        v_stats(v_stats.COUNT + 1).client_id := :NEW.ClientId;
+        v_stats(v_stats.COUNT).csc_id := v_csc;
     END AFTER EACH ROW;
+
+    AFTER STATEMENT IS
+    BEGIN
+        FOR i IN 1 .. v_stats.COUNT LOOP
+            Maj_Centre_Interet(v_stats(i).client_id, v_stats(i).csc_id);
+        END LOOP;
+    END AFTER STATEMENT;
 END;
 /
 
@@ -70,28 +70,22 @@ END;
 CREATE OR REPLACE TRIGGER TR_CentreInteret_Commande
 FOR INSERT ON ProduitCommande
 COMPOUND TRIGGER
-
-    -- Collection pour mémoriser les couples (Client, CSC) à traiter
     TYPE r_info IS RECORD (client_id NUMBER, csc_id NUMBER);
     TYPE t_info IS TABLE OF r_info INDEX BY PLS_INTEGER;
     v_stats t_info;
 
     AFTER EACH ROW IS
-        v_client Commande.ClientId%TYPE;
-        v_csc    Produit.CategorieSousCategorieId%TYPE;
+        v_client NUMBER;
+        v_csc    NUMBER;
     BEGIN
-        -- On capture les infos nécessaires
         SELECT ClientId INTO v_client FROM Commande WHERE CommandeId = :NEW.CommandeId;
         SELECT CategorieSousCategorieId INTO v_csc FROM Produit WHERE ProduitId = :NEW.ProduitId;
-        
-        -- On mémorise dans la collection
         v_stats(v_stats.COUNT + 1).client_id := v_client;
         v_stats(v_stats.COUNT).csc_id := v_csc;
     END AFTER EACH ROW;
 
     AFTER STATEMENT IS
     BEGIN
-        -- Une fois l'insertion finie, la table n'est plus mutante
         FOR i IN 1 .. v_stats.COUNT LOOP
             Maj_Centre_Interet(v_stats(i).client_id, v_stats(i).csc_id);
         END LOOP;
@@ -131,15 +125,14 @@ END;
 -- La note d’un produit est la moyenne des notes que lui ont données des clients
 CREATE OR REPLACE TRIGGER TR_Update_Note_Produit
 AFTER INSERT OR UPDATE OR DELETE ON NoteProduit
-FOR EACH ROW
 BEGIN
-    UPDATE Produit
-    SET NoteProduit = (
-        SELECT ROUND(AVG(Note),1)
-        FROM NoteProduit
-        WHERE ProduitId = :NEW.ProduitId
+    UPDATE Produit p
+    SET p.NoteProduit = (
+        SELECT ROUND(AVG(n.Note), 1)
+        FROM NoteProduit n
+        WHERE n.ProduitId = p.ProduitId
     )
-    WHERE ProduitId = :NEW.ProduitId;
+    WHERE p.ProduitId IN (SELECT DISTINCT ProduitId FROM NoteProduit);
 END;
 /
 
