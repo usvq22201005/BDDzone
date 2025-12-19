@@ -32,3 +32,9 @@ TO role_client;
 GRANT SELECT
 ON Vue_Produits_Mieux_Notes
 TO role_client;
+
+
+-- Les Client ont accées au catalogue des produits 
+GRANT SELECT
+ON Produit
+TO role_client;
