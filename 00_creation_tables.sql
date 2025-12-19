@@ -15,7 +15,7 @@ create table Client(
 --6.	Fournisseur (FournisseurId, Nom, Pays, NoteFournisseur) 
 create table Fournisseur(
     FournisseurId number(5) NOT NULL, 
-    Nom varchar(20) NOT NULL,
+    Nom varchar(50) NOT NULL,
     Pays varchar(2) NOT NULL,
     NoteFournisseur number(2,1) CHECK (NoteFournisseur BETWEEN 1 AND 5),
     constraint PK_Fournisseur primary key (FournisseurId)
@@ -24,7 +24,7 @@ create table Fournisseur(
 --7.	Categorie (CategorieId, Nom, DateAjout) 
 create table Categorie(
     CategorieId number(5) NOT NULL,
-    Nom varchar(20) NOT NULL,
+    Nom varchar(50) NOT NULL,
     DateAjout DATE,
     constraint PK_Categorie primary key(CategorieId)
 );
@@ -33,7 +33,7 @@ create table Categorie(
 create table SousCategorie(
     SousCategorieId number(5) NOT NULL,
     CategorieId number(5) NOT NULL,
-    Nom varchar(20) NOT NULL,
+    Nom varchar(50) NOT NULL,
     DateAjout DATE,
     constraint PK_SousCategorie primary key (SousCategorieId),
     constraint FK_SC_Categorie
