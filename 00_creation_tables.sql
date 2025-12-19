@@ -192,4 +192,4 @@ create table ProduitPays (
         foreign key (ProduitId)
         references Produit(ProduitId),
     constraint PK_ProduitPays primary key (Nom, ProduitId)
-)
+);
