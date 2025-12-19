@@ -96,31 +96,7 @@ END;
 
 -- Trigger NOTES : Réalisé par Yusuf DUMLUPINAR
 -- Un client peut donner à un produit qu’il a acheté il y a au moins une semaine une note entière entre 1 et 5.
-CREATE OR REPLACE TRIGGER TR_Note_Verification
-BEFORE INSERT OR UPDATE ON NoteProduit
-FOR EACH ROW
-DECLARE
-    v_date DATE;
-BEGIN
-    SELECT c.DateCommande
-    INTO v_date
-    FROM Commande c
-    JOIN ProduitCommande pc ON c.CommandeId = pc.CommandeId
-    WHERE c.ClientId = :NEW.ClientId
-      AND pc.ProduitId = :NEW.ProduitId
-      AND ROWNUM = 1;
 
-    IF SYSDATE - v_date < 7 THEN
-        RAISE_APPLICATION_ERROR(-20001,
-        'Le produit doit avoir été acheté il y a au moins 7 jours.');
-    END IF;
-
-    IF :NEW.Note < 1 OR :NEW.Note > 5 THEN
-        RAISE_APPLICATION_ERROR(-20002,
-        'La note doit être comprise entre 1 et 5.');
-    END IF;
-END;
-/
 
 -- La note d’un produit est la moyenne des notes que lui ont données des clients
 CREATE OR REPLACE TRIGGER TR_Update_Note_Produit
