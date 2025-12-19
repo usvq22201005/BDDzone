@@ -765,7 +765,7 @@ group by clientid ;
 Requêtes n°26 Quelle est la moyenne des notes attribuées par des clients à des produits que
 nous leur avons recommandés ? Quelle est la moyenne pour ceux qui ne leur
 ont pas été recommandés ?
-
+*/
  -- vue V_Recommandation_Produit reuttilisée
 
 -- Requête délicate car la jointure peux DEMULTIPLIER le nombre de note d'un produit par
