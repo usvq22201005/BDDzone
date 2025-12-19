@@ -1,15 +1,14 @@
-/*
+/*                          REQUETES toutes faites par Arnaud (ct long)
  Pour me faciliter l'existence dans la construction des 27 requêtes
  j'ai fait des vues intermédiaires ... beaucoup de vues.
  la plus importante V_Vente_Client surtout pour les dernières requêtes.
-- Arnaud
+- Arnaud 
 */
 
 /*                  Panier et Favoris (1)
  Requête n°1 Quels sont les produits que souhaite acheter un client donné
   qui appartiennent 
 à des catégories données ? Ou à ses favoris ? 
- Qui sont déjà stockés dans son pays ?
 */
 CREATE VIEW V_SouhaitAchat_Client as
 select SA.clientId, P.nom as nom_produit,
