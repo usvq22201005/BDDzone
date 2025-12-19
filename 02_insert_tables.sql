@@ -6,15 +6,15 @@
 
 -- 1️⃣ Référentiels de base (fondation)
 insert into Client(ClientId, NomUtilisateur, Nom, Prenom, Adresse, Pays, aLocal)
-values (1, 'nrod01', 'Dupont', 'Nicolas', '1 rue de Paris', 'France', 1);
+values (1, 'nrod01', 'Dupont', 'Nicolas', '1 rue de Paris', 'FR', 1);
 insert into Client(ClientId, NomUtilisateur, Nom, Prenom, Adresse, Pays, aLocal)
-values (2, 'lmartin', 'Martin', 'Lucie', '12 rue Lyon', 'France', 0);
+values (2, 'lmartin', 'Martin', 'Lucie', '12 rue Lyon', 'FR', 0);
 
 
 insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur)
-values (1, 'FournisseurA', 'France', 5);
+values (1, 'FournisseurA', 'FR', 5);
 insert into Fournisseur(FournisseurId, Nom, Pays, NoteFournisseur)
-values (2, 'FournisseurB', 'Allemagne', 4);
+values (2, 'FournisseurB', 'DE', 4);
 
 -- Categories
 insert into Categorie(CategorieId, Nom, DateAjout)
