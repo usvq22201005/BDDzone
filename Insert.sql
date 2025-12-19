@@ -88,7 +88,7 @@ INSERT INTO Fournisseur (Nom, Pays, NoteFournisseur) VALUES ('Hachette', 'FR', 4
 INSERT INTO Fournisseur (Nom, Pays, NoteFournisseur) VALUES ('Eyrolles', 'FR', 4.3);
 INSERT INTO Fournisseur (Nom, Pays, NoteFournisseur) VALUES ('Ikea', 'SE', 4.4);
 INSERT INTO Fournisseur (Nom, Pays, NoteFournisseur) VALUES ('Zara', 'ES', 4.0);
-INSERT INTO Fournisseur (Nom, Pays, NoteFournisseur) VALUES ('H\&M', 'SE', 3.9);
+INSERT INTO Fournisseur (Nom, Pays, NoteFournisseur) VALUES ('HetM', 'SE', 3.9);
 INSERT INTO Fournisseur (Nom, Pays, NoteFournisseur) VALUES ('Darty', 'FR', 4.1);
 
 INSERT INTO Client (NomUtilisateur, Nom, Prenom, Adresse, Pays, aLocal) VALUES ('user1', 'Dupont', 'Jean', '12 rue de Paris', 'FR', 1);
