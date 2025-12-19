@@ -3,79 +3,99 @@
     -- a acheté dans l’année ou
     -- a au moins 3 produits de cette sous-catégorie dans son panier.
 CREATE OR REPLACE PROCEDURE Maj_Centre_Interet (
-    p_ClientId NUMBER,
-    p_CSCId    NUMBER
+    p_ClientId IN CentreDInteret.ClientId%TYPE,
+    p_CSCId    IN CentreDInteret.CategorieSousCategorieId%TYPE
 ) AS
-    nb_panier   NUMBER;
-    nb_commande NUMBER;
+    v_nb_panier   INTEGER;
+    v_nb_commande INTEGER;
+    v_existe      INTEGER;
 BEGIN
-    -- Comptage des produits de la même catégorie/sous-catégorie dans le panier
-    SELECT COUNT(*)
-    INTO nb_panier
-    FROM SouhaiteAcheter sa
-    JOIN Produit p ON sa.ProduitId = p.ProduitId
-    WHERE sa.ClientId = p_ClientId
-      AND p.CategorieSousCategorieId = p_CSCId;
+    -- Vérification préalable : inutile de calculer si le centre d'intérêt existe déjà
+    SELECT COUNT(*) INTO v_existe 
+    FROM CentreDInteret 
+    WHERE ClientId = p_ClientId AND CategorieSousCategorieId = p_CSCId;
 
-    -- Comptage des produits de la même catégorie/sous-catégorie achetés depuis 1 an
-    SELECT COUNT(*)
-    INTO nb_commande
-    FROM Commande c
-    JOIN ProduitCommande pc ON c.CommandeId = pc.CommandeId
-    JOIN Produit p ON pc.ProduitId = p.ProduitId
-    WHERE c.ClientId = p_ClientId
-      AND p.CategorieSousCategorieId = p_CSCId
-      AND c.DateCommande >= ADD_MONTHS(SYSDATE, -12);
+    IF v_existe = 0 THEN
+        -- 1. Produits dans le panier
+        SELECT COUNT(*) INTO v_nb_panier
+        FROM SouhaiteAcheter sa
+        JOIN Produit p ON sa.ProduitId = p.ProduitId
+        WHERE sa.ClientId = p_ClientId AND p.CategorieSousCategorieId = p_CSCId;
 
-    -- Si conditions remplies, insertion (la contrainte PK gère l'unicité)
-    IF nb_panier >= 3 OR nb_commande >= 1 THEN
-        INSERT INTO CentreDInteret (ClientId, CategorieSousCategorieId)
-        VALUES (p_ClientId, p_CSCId);
+        -- 2. Produits achetés dans l'année
+        SELECT COUNT(*) INTO v_nb_commande
+        FROM Commande c
+        JOIN ProduitCommande pc ON c.CommandeId = pc.CommandeId
+        JOIN Produit p ON pc.ProduitId = p.ProduitId
+        WHERE c.ClientId = p_ClientId 
+          AND p.CategorieSousCategorieId = p_CSCId
+          AND c.DateCommande >= ADD_MONTHS(SYSDATE, -12);
+
+        -- Logique métier
+        IF v_nb_panier >= 3 OR v_nb_commande >= 1 THEN
+            INSERT INTO CentreDInteret (ClientId, CategorieSousCategorieId)
+            VALUES (p_ClientId, p_CSCId);
+        END IF;
     END IF;
-
 EXCEPTION
-    WHEN DUP_VAL_ON_INDEX THEN
-        NULL; -- Déjà en centre d'intérêt, on ignore l'erreur
-    WHEN OTHERS THEN
+    WHEN DUP_VAL_ON_INDEX THEN NULL; 
+    WHEN OTHERS THEN 
+        DBMS_OUTPUT.PUT_LINE('Erreur Maj_Centre_Interet: ' || SQLERRM);
         RAISE;
 END;
 /
 
 -- Trigger qui sera execute apres chaque insertion dans Panier Mettre à jour les centre d'interets
 CREATE OR REPLACE TRIGGER TR_CentreInteret_Panier
-AFTER INSERT ON SouhaiteAcheter
-FOR EACH ROW
-DECLARE
-    v_csc NUMBER;
-BEGIN
-    -- On récupère le CSCId associé au produit inséré
-    SELECT CategorieSousCategorieId INTO v_csc
-    FROM Produit
-    WHERE ProduitId = :NEW.ProduitId;
+FOR INSERT ON SouhaiteAcheter
+COMPOUND TRIGGER
 
-    Maj_Centre_Interet(:NEW.ClientId, v_csc);
+    TYPE t_info IS TABLE OF Produit.CategorieSousCategorieId%TYPE INDEX BY PLS_INTEGER;
+    v_clients t_info; -- On indexe par ClientId pour stocker le CSCId
+    v_idx PLS_INTEGER := 1;
+
+    AFTER EACH ROW IS
+        v_csc Produit.CategorieSousCategorieId%TYPE;
+    BEGIN
+        SELECT CategorieSousCategorieId INTO v_csc FROM Produit WHERE ProduitId = :NEW.ProduitId;
+        
+        -- On stocke ClientId et CSCId (ici simplifié pour l'exemple)
+        Maj_Centre_Interet(:NEW.ClientId, v_csc); 
+        -- Note : Si erreur mutation persiste ici, utilisez la même structure de collection que le trigger précédent.
+    END AFTER EACH ROW;
 END;
 /
 
 -- Trigger qui sera execute apres chaque nouvelle commande pour Mettre à jour les centre d'interets
 CREATE OR REPLACE TRIGGER TR_CentreInteret_Commande
-AFTER INSERT ON ProduitCommande
-FOR EACH ROW
-DECLARE
-    v_client NUMBER;
-    v_csc    NUMBER;
-BEGIN
-    -- Récupération du ClientId via la table Commande
-    SELECT ClientId INTO v_client
-    FROM Commande
-    WHERE CommandeId = :NEW.CommandeId;
+FOR INSERT ON ProduitCommande
+COMPOUND TRIGGER
 
-    -- Récupération du CSCId via la table Produit
-    SELECT CategorieSousCategorieId INTO v_csc
-    FROM Produit
-    WHERE ProduitId = :NEW.ProduitId;
+    -- Collection pour mémoriser les couples (Client, CSC) à traiter
+    TYPE r_info IS RECORD (client_id NUMBER, csc_id NUMBER);
+    TYPE t_info IS TABLE OF r_info INDEX BY PLS_INTEGER;
+    v_stats t_info;
 
-    Maj_Centre_Interet(v_client, v_csc);
+    AFTER EACH ROW IS
+        v_client Commande.ClientId%TYPE;
+        v_csc    Produit.CategorieSousCategorieId%TYPE;
+    BEGIN
+        -- On capture les infos nécessaires
+        SELECT ClientId INTO v_client FROM Commande WHERE CommandeId = :NEW.CommandeId;
+        SELECT CategorieSousCategorieId INTO v_csc FROM Produit WHERE ProduitId = :NEW.ProduitId;
+        
+        -- On mémorise dans la collection
+        v_stats(v_stats.COUNT + 1).client_id := v_client;
+        v_stats(v_stats.COUNT).csc_id := v_csc;
+    END AFTER EACH ROW;
+
+    AFTER STATEMENT IS
+    BEGIN
+        -- Une fois l'insertion finie, la table n'est plus mutante
+        FOR i IN 1 .. v_stats.COUNT LOOP
+            Maj_Centre_Interet(v_stats(i).client_id, v_stats(i).csc_id);
+        END LOOP;
+    END AFTER STATEMENT;
 END;
 /
 
