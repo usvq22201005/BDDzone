@@ -304,25 +304,23 @@ END;
 
 CREATE OR REPLACE TRIGGER TR_CalcPrixTotalCommande
 AFTER INSERT OR UPDATE OR DELETE ON ProduitCommande
-FOR EACH ROW
-DECLARE
-    vTotal Commande.PrixTotal%TYPE;
-    vCommandeId ProduitCommande.CommandeId%TYPE;
+-- On supprime FOR EACH ROW pour éviter l'erreur de mutation
 BEGIN
-    IF INSERTING OR UPDATING THEN
-        vCommandeId := :NEW.CommandeId;
-    ELSIF DELETING THEN
-        vCommandeId := :OLD.CommandeId;
-    END IF;
-
-    SELECT NVL(SUM(Quantite * Prix), 0)
-    INTO vTotal
-    FROM ProduitCommande
-    WHERE CommandeId = vCommandeId;
-
-    UPDATE Commande
-    SET PrixTotal = vTotal
-    WHERE CommandeId = vCommandeId;
+    -- On recalcule le total pour TOUTES les commandes présentes 
+    -- dans ProduitCommande pour s'assurer de la cohérence.
+    UPDATE Commande C
+    SET C.PrixTotal = (
+        SELECT NVL(SUM(PC.Quantite * PC.Prix), 0)
+        FROM ProduitCommande PC
+        WHERE PC.CommandeId = C.CommandeId
+    )
+    -- On limite aux commandes qui ont des lignes de produits
+    WHERE C.CommandeId IN (SELECT CommandeId FROM ProduitCommande);
+    
+    -- Optionnel : Remettre à 0 les commandes qui n'ont plus de produits (cas du DELETE)
+    UPDATE Commande C
+    SET C.PrixTotal = 0
+    WHERE NOT EXISTS (SELECT 1 FROM ProduitCommande PC WHERE PC.CommandeId = C.CommandeId);
 END;
 /
 
