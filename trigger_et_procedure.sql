@@ -4,38 +4,40 @@
     -- a au moins 3 produits de cette sous-catégorie dans son panier.
 CREATE OR REPLACE PROCEDURE Maj_Centre_Interet (
     p_ClientId NUMBER,
-    p_SousCategorieId NUMBER,
-    p_CategorieId NUMBER
+    p_CSCId    NUMBER
 ) AS
-    nb_panier NUMBER;
+    nb_panier   NUMBER;
     nb_commande NUMBER;
 BEGIN
-    -- Produits dans le panier
+    -- Comptage des produits de la même catégorie/sous-catégorie dans le panier
     SELECT COUNT(*)
     INTO nb_panier
     FROM SouhaiteAcheter sa
     JOIN Produit p ON sa.ProduitId = p.ProduitId
     WHERE sa.ClientId = p_ClientId
-      AND p.SousCategorieId = p_SousCategorieId;
+      AND p.CategorieSousCategorieId = p_CSCId;
 
-    -- Produits achetés dans l’année
+    -- Comptage des produits de la même catégorie/sous-catégorie achetés depuis 1 an
     SELECT COUNT(*)
     INTO nb_commande
     FROM Commande c
     JOIN ProduitCommande pc ON c.CommandeId = pc.CommandeId
     JOIN Produit p ON pc.ProduitId = p.ProduitId
     WHERE c.ClientId = p_ClientId
-      AND p.SousCategorieId = p_SousCategorieId
+      AND p.CategorieSousCategorieId = p_CSCId
       AND c.DateCommande >= ADD_MONTHS(SYSDATE, -12);
 
+    -- Si conditions remplies, insertion (la contrainte PK gère l'unicité)
     IF nb_panier >= 3 OR nb_commande >= 1 THEN
-        INSERT INTO CentreDInteret (ClientId, CategorieId, SousCategorieId)
-        VALUES (p_ClientId, p_CategorieId, p_SousCategorieId);
+        INSERT INTO CentreDInteret (ClientId, CategorieSousCategorieId)
+        VALUES (p_ClientId, p_CSCId);
     END IF;
 
 EXCEPTION
     WHEN DUP_VAL_ON_INDEX THEN
-        NULL;
+        NULL; -- Déjà en centre d'intérêt, on ignore l'erreur
+    WHEN OTHERS THEN
+        RAISE;
 END;
 /
 
@@ -44,15 +46,14 @@ CREATE OR REPLACE TRIGGER TR_CentreInteret_Panier
 AFTER INSERT ON SouhaiteAcheter
 FOR EACH ROW
 DECLARE
-    v_cat NUMBER;
-    v_scat NUMBER;
+    v_csc NUMBER;
 BEGIN
-    SELECT CategorieId, SousCategorieId
-    INTO v_cat, v_scat
+    -- On récupère le CSCId associé au produit inséré
+    SELECT CategorieSousCategorieId INTO v_csc
     FROM Produit
     WHERE ProduitId = :NEW.ProduitId;
 
-    Maj_Centre_Interet(:NEW.ClientId, v_scat, v_cat);
+    Maj_Centre_Interet(:NEW.ClientId, v_csc);
 END;
 /
 
@@ -62,19 +63,19 @@ AFTER INSERT ON ProduitCommande
 FOR EACH ROW
 DECLARE
     v_client NUMBER;
-    v_cat NUMBER;
-    v_scat NUMBER;
+    v_csc    NUMBER;
 BEGIN
+    -- Récupération du ClientId via la table Commande
     SELECT ClientId INTO v_client
     FROM Commande
     WHERE CommandeId = :NEW.CommandeId;
 
-    SELECT CategorieId, SousCategorieId
-    INTO v_cat, v_scat
+    -- Récupération du CSCId via la table Produit
+    SELECT CategorieSousCategorieId INTO v_csc
     FROM Produit
     WHERE ProduitId = :NEW.ProduitId;
 
-    Maj_Centre_Interet(v_client, v_scat, v_cat);
+    Maj_Centre_Interet(v_client, v_csc);
 END;
 /
 
