@@ -1,12 +1,13 @@
-  -- Pour me faciliter l'existence dans la construction des requêtes
--- j'ai crée des vues intermédiaires ... 
+-- Pour me faciliter l'existence dans la construction des 27 requêtes
+-- j'ai crée des vues intermédiaires ... beaucoup de vues.
+-- la plus importante V_Vente_Client surtout pour les dernières requêtes.
 
-
--- Requête n°1 Quels sont les produits que **souhaite acheter** 
---un client donné qui appartiennent 
---à des **catégories données ?** Ou à ses favoris ? 
--- Qui sont déjà stockés dans son pays ?
-
+/*                  Panier et Favoris (1)
+ Requête n°1 Quels sont les produits que souhaite acheter un client donné
+  qui appartiennent 
+à des catégories données ? Ou à ses favoris ? 
+ Qui sont déjà stockés dans son pays ?
+*/
 CREATE VIEW V_SouhaitAchat_Client as
 select SA.clientId, P.nom as nom_produit,
 P.Prix, CAT.nom as categorie,
@@ -23,8 +24,7 @@ where categorie like 'Informatique'
 and clientid = 2 ;
 
 -- Ou si ces produits appartiennent à une catégorie favorite du client...
-
--- mais pour cela on crée la vue favori (utile plus tard)
+-- pour cela on crée la vue favori 
 CREATE VIEW V_FavoriClient as
 select CL.ClientId, CL.nomutilisateur, Cat.Nom as CategorieFavorite,
 Cat.CategorieId
@@ -50,10 +50,10 @@ and exists( -- vérifie qu'une ligne dans Favori a le même clientId et Categori
 
 
 
-
---Requête n°2 Pour chaque client, quelles (sous-)catégories présentes dans ses souhait d'achat n’ont
---jamais été recommandées
-
+/*                              Panier et Favoris (2)                  
+Requête n°2 Pour chaque client, quelles (sous-)catégories présentes dans ses souhait d'achat n’ont
+jamais été recommandées
+*/
 CREATE VIEW V_Recommandation_Produit AS
 select
   r.ClientId,
@@ -84,7 +84,9 @@ where REC.clientid =2
 -- Les sous categorie présentent l'inconvenient de pouvoir être 'null'
 -- le 'not in' ne suffit pas...
 
-/*
+
+
+/*                      Produits (1)
 -- Requêtes n°3 Quels sont les 3 produits actuellement les mieux notés par les utilisateurs sur
 --tout le site ? Et dans une catégorie ou sous-catégorie particulière ?
 */
@@ -109,14 +111,14 @@ from (
   order by avg(v.note) DESC
   )
 where rownum <= 3 ;
- -- j'uttilise row_num aprceque fetch first 3 n'existe pas sur toute les versions d'ORACLE...
+ -- j'uttilise row_num car fetch first 3 n'existe pas sur toute les versions d'ORACLE...
 -- il faut le mettre après que l'aggregat soit fait sinon les trois lignes  sont prise indépendamment de la moyenne.
 -- https://use-the-index-luke.com/sql/partial-results/top-n-queries
 
 
 
 
-/*
+/*                              Produits (2)
 -- Requêtes n°4 : Quels sont les 3 produits les plus vendus par un fournisseur donné sur une
 période donnée ?
 */
@@ -145,10 +147,11 @@ from (
   order by sum(vf.quantite) DESC) 
 where rownum <= 3 ; 
 
+/*                      Produits (3)
 -- Requête n°5 (variante de la précédente...)
 -- Quel est le produit qui a rapporté le plus d’argent à un fournisseur donné sur
 -- une période donnée ?
-
+*/
 select *
 from ( 
   select sum(vf.prix*vf.quantite) as Gain_Produit,vf.nom as nom_produit, vf.produitid,vf.fournisseurid
@@ -165,11 +168,13 @@ from (
 
 
 
+/*                    Produits (4)
+-- Requête n°6 : Produits recommandés et achetés dans les 30 jours suivant recommandation
 
--- Requête n°6 : Produits recommandés et achetés dans les 30 jours
 -- Pour les requêtes qui portent sur les clients et les commandes d'articles
 -- mais aussi sur leur recommendation et celle cie à quelle date : 
--- la MEGA vue Vente_Client !!! 
+-- on crée la vue Vente_Client  
+*/
 
 CREATE VIEW V_Vente_Client AS
 select
@@ -199,9 +204,14 @@ join SousCategorie sc ON p.SousCategorieId = sc.SousCategorieId ;
   -- il suffit de mettre la restriction dans les 30 jours suivant la recommandation 
   where VC.datecommande between REC.DateReco-1  and REC.DateReco+30;
 
-  
--- Requête n°7 Quels sont les 3 produits les plus recommandés (toutes catégories
--- confondues) sur le dernier mois 
+
+
+  /*                            Produits (5)
+  Requête n°7 Quels sont les 3 produits les plus recommandés (toutes catégories
+  confondues) sur le dernier mois 
+ */
+
+
   select * from(
   select count(*) as nb_reco,produitid,rec.nom_produit
   from V_recommandation_Produit REC 
@@ -210,7 +220,7 @@ join SousCategorie sc ON p.SousCategorieId = sc.SousCategorieId ;
   where rownum <=3;-- je commence à m'habituer à faire des top 3...
 
 
-/*
+/*                          Produits (8)
 --Requête n°8 
 Quels sont les produits les plus achetés par les clients qui ne veulent acheter
 que local ? Et pour un pays en particulier ?
@@ -229,7 +239,7 @@ order by nb_achete DESC);
 
 
 
-/*                                                Catégories et Sous-catégories
+/*                    Catégories et Sous-catégories (1)
 --Requête n°9
 Quelle est la catégorie dont les articles sont les mieux notés en moyenne  ?
 */
@@ -251,7 +261,7 @@ order by note_moy DESC
 where rownum <=1 ; -- pour obtenir LA categorie ayant la meilleure moyenne de notes...
 
 
-/*
+/*              Catégories et Sous-catégories (2)
 --Requête n°10
 Quelles sont les 3 catégories dont le plus de produits ont été vendus ce dernier mois  ?
 Encore un top3... 
@@ -270,7 +280,7 @@ order by nb_vente
 ) where rownum <=3;
 
 
-/*
+/*                     Catégories et Sous-catégories (3)
 --Requête n°11
 Quels pourcentages représentent chaque catégorie achetée par un client donné dans
 ses achats totaux sur une période donnée ?
@@ -285,7 +295,7 @@ et se trouve dans la table temporaire QClientCat.
 --select * from V_Vente_Client VC;  
 
 select QClientCat.clientid as clientid,QClientCat.nom as categorie, 
-(QClientCat.qte_cat/QClient.client_total)*100 as pourcentage
+round((QClientCat.qte_cat/QClient.client_total)*100,2) as pourcentage
 from 
 (
 select cat.nom,VC.nomutilisateur, VC.clientid, sum(VC.quantite) as qte_cat
@@ -304,10 +314,15 @@ group by VC.clientid
 
 on QClientCat.clientid= QClient.clientid 
 ; -- pfiou
--- pour une période donnée et un client donné il faut rajouter des where
--- dans les deux tables temporaire mais je risque de pas avoir le temps...
-
 /*
+ pour une période donnée et un client donné il faut rajouter des where
+dans les deux tables temporaire. 
+*/
+
+
+
+
+/*                     Catégories et Sous-catégories (4)
 --Requête n°12
 12) Pour un client donné, quelles sont les catégories 
 dont il a acheté au moins trois produits appartenant à des sous-catégories différentes ?
@@ -334,7 +349,7 @@ where V.nb_souscat >=2 ;-- pour tester j'ai mis 2 souscategorie/produits distinc
 -- la requête demande 3,
 
 
-/*
+/*                    Catégories et Sous-catégories (5)
 --Requête n°13
 Quels clients ont acheté tous les produits d’une sous-catégorie donnée,
 et quel pourcentage des produits de cette sous-catégorie ont-ils noté ?
@@ -364,7 +379,8 @@ on CL_achatSC.souscategorieid=SC_allproduit.souscategorieid
 -- autant de produit distincts qu'il y en a dans la SC.
 where CL_achatSC.nb_achat = SC_allproduit.nb_produit ;
 
-/*
+
+/*                   Catégories et Sous-catégories (6)
 --Requête n°14
 Quelles (sous-)catégories ont été ajoutées sur une période donnée  ?
 
@@ -386,7 +402,10 @@ select SCP.nom as Nom,SCP.Dateajout as Dateajout from SC_PERIOD SCP
 UNION ALL 
 select CP.Nom as Nom, CP.Dateajout as Dateajout from C_PERIOD CP ;
 
-/*
+
+
+
+/*                           Clients (1)
 --Requête n°15 
 Quels sont les clients ayant des centres d’intérêt similaires à un client donné ? 
 
@@ -407,13 +426,15 @@ and Ci1.souscategorieid = Ci2.souscategorieid --
 group by Ci1.clientid,Ci2.clientid -- couples du produit cartésien
 ;
 
-/*
---Requête n°16) Quels sont les clients pour lesquels nous avons recommandé une sous-catégorie au moins 
-3 fois au cours des 6 derniers mois, 
-mais qui n’ont jamais acheté de produit dans cette sous-catégorie après ces recommandations ?
+/*                           Clients (2)
+Requête n°16 Quels sont les clients pour lesquels nous avons recommandé
+ une sous-catégorie au moins 3 fois au cours des 6 derniers mois, 
+mais qui n’ont jamais acheté de produit dans cette sous-catégorie 
+après ces recommandations ?
 
 ON NE PEUX PAS reuttiliser la VUE V_Recommandation_Produit 
-car on cherche le nombre de recommendation pour une categorie/souscategorie
+car on cherche le nombre de recommandation pour une categorie/souscategorie
+et non le nombre de recommendation par produit.
 */ 
 -- On cherche le nombre de categorie.souscategorie recommendéess dans la table recommendation...
 create view V_Recommandation as
@@ -443,7 +464,10 @@ and VC.souscategorieid = V.souscategorieid
 
 --on veut les clients dans cette liste qui ne sont pas dans la liste de vente
 -- de cette sous categorie après cette recommendation
-/*
+
+
+
+/*                         Clients (3)
 Requête n°17  Quels sont les 5 clients ayant dépensé 
 le plus sur les douze derniers mois et quel pourcentage des produits 
 qu’ils ont achetés leur ont été recommandés ?
@@ -455,14 +479,14 @@ select clientid,sum(quantite*prix) as depense
 from V_Vente_Client VC
 group by clientid
 order by depense DESC )
-where rownum <=5;s
+where rownum <=5;
 
 
 /*
 select * --clientid
 from V_Recommandation_Produit; */
 
-/*
+/*                          Clients (4)
 Requête n°18
 Quels sont les 5 clients qui ont le plus grand écart 
 entre la note moyenne qu’ils laissent et la note moyenne des produits qu’ils achètent ?
@@ -482,7 +506,7 @@ group by NP.produitid
 ;
 
 
--- et enfin la requête :5 clients qui ont le plus grand écart 
+-- et enfin la requête FINALE : 5 clients qui ont le plus grand écart 
 --entre la note moyenne qu’ils laissent et la note moyenne des produits qu’ils achètent 
 select * from (
 select pac.clientid, nl.moy_note as note_moy_client,pac.produitid,
@@ -497,15 +521,18 @@ order by diff DESC
 )
 where rownum <= 5; -- 5 clients
 
-/*
+
+
+/*                          Clients (5)
 Requête n°19
 Quels clients ont reçu une recommandation 
 contenant au moins un produit qu’ils avaient déjà acheté ?
-*/
+
 select * from V_Recommandation_Produit VR ;
 select *
 from V_Vente_Client VC ;
 
+*/
 select clientid from client
 where exists (
 select VC.clientid,VC.produitid as prot_acheté_reco, VR.Datereco
@@ -515,7 +542,174 @@ on VC.clientid = VR.clientid
 and VC.produitid = VR.produitid 
 );
 
-/*
+
+
+
+
+
+/*                           Fournisseurs (1)
 Requête n°20 Quel est le total des ventes d’un fournisseur donné sur une période donnée ?
 
+La vue V_Vente_Fournisseur d'impose
+select * from V_Vente_Fournisseur ;-- pour visualiser
 */
+
+
+select nom_fourn,sum(quantite) as total_vente
+from V_Vente_Fournisseur 
+where datecommande between to_date('2025-01-01','YYYY-MM-DD')
+and to_date('2025-12-30','YYYY-MM-DD')
+group by nom_fourn
+;
+
+/*                          Fournisseurs (2)
+Requête n°21 Quels fournisseurs ont **vendu** des produits uniquement dans leur propre pays ?
+    
+*/
+select VF.fournisseurid,VF.commandeid, VF.produitid, F.Pays
+
+from V_Vente_Fournisseur VF
+join fournisseur F
+on F.fournisseurid= VF.fournisseurid
+join commande co on co.commandeid = VF.commandeid
+join client cl on co.clientid = cl.clientid
+
+where F.pays= cl.pays
+;
+
+
+/*                          Fournisseurs (3)
+Requête n°22 Quels sont les fournisseurs les mieux notés ?
+*/
+-- il y une certaine baisse de difficultée dans les requêtes...
+select * 
+from fournisseur
+order by NoteFournisseur DESC ;
+
+/*               Ventes et Chiffre d’affaires (1)
+Requête n°23 Quel est le total des ventes du site entier sur une période donnée ?
+*/
+
+
+
+select sum(prixtotal)as total_vente 
+
+from commande
+where datecommande between to_date('2025-01-01','YYYY-MM-DD') and to_date('2025-12-30','YYYY-MM-DD');
+
+/*                     Ventes et Chiffre d’affaires (2)
+Requêtes n°24 Pour chaque catégorie, quel **est le pourcentage du chiffre d’affaires total** 
+qu’elle représente la semaine passée, en classant par parts décroissantes ?
+
+Encore un pourcentage cela ressemble à la requête n°11
+
+On a besoin de 
+prix vendu par categorie (ici somme sans multiplier par quantite)
+car pour les ventes clients on regarde les vente de produit en quantite =1
+divisé par chiffre d'affaire total puis multiplié par 100
+
+*/ --select * from V_Vente_CLient VC;-- vue importante
+
+-- requête difficile car ile me fallait rajouter la colonne total_vente en parapllèle de la somme
+-- des vente de chaque categorie...
+select VC.categorieid,(sum(VC.prix)) as cat_vente, temp.total_vente as site_vente,
+round(((sum(VC.prix))/temp.total_vente)*100,2) as pourcentage_CA
+from
+V_Vente_CLient VC 
+
+cross join -- permet de joidnre la colonne  total des ventes même si il n'y a pas de valeur commune...
+(
+select sum(prixtotal) as total_vente 
+from commande
+where datecommande between to_date('2025-01-01','YYYY-MM-DD') and to_date('2025-12-30','YYYY-MM-DD')
+) temp
+where datecommande between to_date('2025-01-01','YYYY-MM-DD') 
+and to_date('2025-12-30','YYYY-MM-DD')
+group by VC.categorieid,temp.total_vente;
+
+
+
+
+
+/*                           Notes et Avis (1)
+Requêtes n°25 Quelle est la moyenne des notes laissées par un client donné ? Ainsi que le
+nombre d’avis qu’il a laissés  ?
+*/
+
+CREATE VIEW V_Note AS -- On reuttilise la vue : V_Note (déja cree pour la requête n°3)
+select
+  n.ClientId,
+  n.ProduitId,
+  p.nom as nom_produit,
+  n.Note
+from NoteProduit n
+join Produit p on p.produitid=n.produitid;
+
+select round(avg(Note),2),count(note) as nb_avis
+from V_Note
+group by clientid ;
+
+/*                           Notes et Avis (2)
+Requêtes n°26 Quelle est la moyenne des notes attribuées par des clients à des produits que
+nous leur avons recommandés ? Quelle est la moyenne pour ceux qui ne leur
+ont pas été recommandés ?
+*/
+
+CREATE VIEW V_Recommandation_Produit AS
+select
+  r.ClientId,
+  rp.ProduitId,
+  p.nom as nom_produit,
+  cat.nom as categorie,
+  cat.categorieid,
+  sc.souscategorieid ,
+  r.DateHeure as DateReco
+from Recommandation r
+join RecommandationProduit rp ON r.RecommandationId = rp.RecommandationId
+join Produit p on rp.produitid= p.produitid
+join Categorie cat on cat.categorieid = p.categorieid 
+join souscategorie sc on p.souscategorieid = sc.souscategorieid; -- vue V_Recommandation_Produit reuttilisée
+
+-- Requête délicate car la jointure peux DEMULTIPLIER le nombre de note d'un produit par
+-- le nobmre de recommendation faite sur ce même produit.
+-- si je fais une jointure sans réfléchir entre V_recommendation_Produit et V_Note....
+select VRP.clientid,
+round(avg(VN.note),2) as moyenne_note -- (2) puis on fait la moyenne
+from 
+(
+select distinct clientid, produitid -- (1)on prend les couples uniques
+from V_Recommandation_Produit
+) VRP
+join V_Note VN
+on VN.produitid = VRP.produitid
+and  VN.clientid = VRP.clientid
+group by VRP.clientid ;
+
+
+
+/*                           Centres d’intérêt
+
+Requêtes n°27 Quels sont les centres d’intérêt les plus fréquents parmi tous les clients
+(catégories ou sous-catégories confondues) ?
+*/
+
+select C1.categorieid as CSC_interêt, Cat.nom as nom,
+count(distinct C1.clientid) as nb_client
+
+from CentreDInteret  C1
+join categorie Cat on C1.categorieid = Cat.categorieid
+group by  C1.categorieid,Cat.nom 
+
+union all -- renommer les colonnes pour les colonnes Cat.nom et SCat.nom match
+
+select C2.souscategorieid as CSC_interêt, SCat.nom as nom, 
+count(distinct C2.clientid) as nb_client
+
+from CentreDInteret C2 
+join souscategorie SCat on C2.souscategorieid=SCat.souscategorieid
+group by C2.souscategorieid ,SCat.nom
+
+;
+
+select * from  CentreDInteret ;
+
