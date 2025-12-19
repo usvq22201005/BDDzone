@@ -182,7 +182,7 @@ END;
 
 --Un client n’a besoin de fournir son nom, son prénom et son adresse que s’il passe une commande.
 
-CREATE OR REPLACE TRIGGER trigger_VerifInfoClientCommande
+CREATE OR REPLACE TRIGGER TR_VerifInfoClientCommande
 BEFORE INSERT ON Commande
 FOR EACH ROW
 DECLARE
@@ -206,7 +206,7 @@ END;
 
 -- Quand un client s’inscrit, par défaut, il voit tous les produits et pas uniquement les produits locaux dans ses recommandations.
 
-CREATE OR REPLACE TRIGGER trigger_ValeuraLocalParDefautClient
+CREATE OR REPLACE TRIGGER TR_ValeuraLocalParDefautClient
 BEFORE INSERT ON Client
 FOR EACH ROW
 BEGIN
@@ -218,7 +218,7 @@ END;
 
 -- Un client n’achetant que local ne peut pas se faire recommander de produit qui n’est pas stocké dans son pays ou qui n’est pas d’un fournisseur de son pays.
 
-CREATE OR REPLACE TRIGGER trigger_VerifRecommandationLocale
+CREATE OR REPLACE TRIGGER TR_VerifRecommandationLocale
 BEFORE INSERT ON RecommandationProduit
 FOR EACH ROW
 DECLARE
@@ -262,7 +262,7 @@ END;
 
 -- Le prix d'un article du panier doit correspondre au prix unitaire de l'article sur le site multiplié par sa quantité. 
 
-CREATE OR REPLACE TRIGGER trigger_CalcPrixSouhaiteAcheter
+CREATE OR REPLACE TRIGGER TR_CalcPrixSouhaiteAcheter
 BEFORE INSERT OR UPDATE ON SouhaiteAcheter
 FOR EACH ROW
 DECLARE
@@ -279,7 +279,7 @@ END;
 
 -- On applique la même logique à la table ProduitCommande :
 
-CREATE OR REPLACE TRIGGER trigger_CalcPrixProduitCommande
+CREATE OR REPLACE TRIGGER TR_CalcPrixProduitCommande
 BEFORE INSERT OR UPDATE ON ProduitCommande
 FOR EACH ROW
 DECLARE
@@ -297,7 +297,7 @@ END;
 
 -- Le montant total d’une commande doit être égal à la somme, pour chaque produit de la commande, du prix à l’unité du produit multiplié par la quantité commandée.
 
-CREATE OR REPLACE TRIGGER trigger_CalcPrixTotalCommande
+CREATE OR REPLACE TRIGGER TR_CalcPrixTotalCommande
 AFTER INSERT OR UPDATE OR DELETE ON ProduitCommande
 FOR EACH ROW
 DECLARE
@@ -326,7 +326,7 @@ END;
 
 -- Une commande ou recommandation ne peut en aucun cas être supprimée.
 
-CREATE OR REPLACE TRIGGER trigger_SupprCommandeInterdite
+CREATE OR REPLACE TRIGGER TR_SupprCommandeInterdite
 BEFORE DELETE ON Commande
 FOR EACH ROW
 BEGIN
@@ -334,7 +334,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_SupprRecommandationInterdite
+CREATE OR REPLACE TRIGGER TR_SupprRecInterdite
 BEFORE DELETE ON Recommandation
 FOR EACH ROW
 BEGIN
@@ -349,7 +349,7 @@ END;
 
 CREATE SEQUENCE CategorieSousCategorie_SEQ START WITH 1 INCREMENT BY 1;
 
-CREATE OR REPLACE TRIGGER trigger_CSC_AjoutCategorie
+CREATE OR REPLACE TRIGGER TR_CSC_AjoutCategorie
 AFTER INSERT ON Categorie
 FOR EACH ROW
 BEGIN
@@ -358,7 +358,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_CSC_SupprCategorie
+CREATE OR REPLACE TRIGGER TR_CSC_SupprCategorie
 AFTER DELETE ON Categorie
 FOR EACH ROW
 BEGIN
@@ -368,7 +368,7 @@ END;
 /
 
 
-CREATE OR REPLACE TRIGGER trigger_CSC_AjoutSousCategorie
+CREATE OR REPLACE TRIGGER TR_CSC_AjoutSousCategorie
 AFTER INSERT ON SousCategorie
 FOR EACH ROW
 BEGIN
@@ -377,7 +377,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_CSC_SupprSousCategorie
+CREATE OR REPLACE TRIGGER TR_CSC_SupprSousCategorie
 AFTER DELETE ON SousCategorie
 FOR EACH ROW
 BEGIN
@@ -386,7 +386,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_CSC_UpdateSousCategorie
+CREATE OR REPLACE TRIGGER TR_CSC_UpdateSousCategorie
 AFTER UPDATE OF CategorieId ON SousCategorie
 FOR EACH ROW
 BEGIN
@@ -402,7 +402,7 @@ END;
 -- Gestion des identifiants numériques (tous les ID servant de clés primaires) :
 
 CREATE SEQUENCE seq_client START WITH 1 INCREMENT BY 1 NOCACHE;
-CREATE OR REPLACE TRIGGER trigger_client_id
+CREATE OR REPLACE TRIGGER TR_client_id
 BEFORE INSERT ON Client
 FOR EACH ROW
 BEGIN
@@ -413,7 +413,7 @@ END;
 /
 
 CREATE SEQUENCE seq_fournisseur START WITH 1 INCREMENT BY 1 NOCACHE;
-CREATE OR REPLACE TRIGGER trigger_fournisseur_id
+CREATE OR REPLACE TRIGGER TR_fournisseur_id
 BEFORE INSERT ON Fournisseur
 FOR EACH ROW
 BEGIN
@@ -424,7 +424,7 @@ END;
 /
 
 CREATE SEQUENCE seq_categorie START WITH 1 INCREMENT BY 1 NOCACHE;
-CREATE OR REPLACE TRIGGER trigger_categorie_id
+CREATE OR REPLACE TRIGGER TR_categorie_id
 BEFORE INSERT ON Categorie
 FOR EACH ROW
 BEGIN
@@ -435,7 +435,7 @@ END;
 /
 
 CREATE SEQUENCE seq_souscategorie START WITH 1 INCREMENT BY 1 NOCACHE;
-CREATE OR REPLACE TRIGGER trigger_souscategorie_id
+CREATE OR REPLACE TRIGGER TR_souscategorie_id
 BEFORE INSERT ON SousCategorie
 FOR EACH ROW
 BEGIN
@@ -446,7 +446,7 @@ END;
 /
 
 CREATE SEQUENCE seq_csc START WITH 1 INCREMENT BY 1 NOCACHE;
-CREATE OR REPLACE TRIGGER trigger_csc_id
+CREATE OR REPLACE TRIGGER TR_csc_id
 BEFORE INSERT ON CategorieSousCategorie
 FOR EACH ROW
 BEGIN
@@ -457,7 +457,7 @@ END;
 /
 
 CREATE SEQUENCE seq_produit START WITH 1 INCREMENT BY 1 NOCACHE;
-CREATE OR REPLACE TRIGGER trigger_produit_id
+CREATE OR REPLACE TRIGGER TR_produit_id
 BEFORE INSERT ON Produit
 FOR EACH ROW
 BEGIN
@@ -468,7 +468,7 @@ END;
 /
 
 CREATE SEQUENCE seq_commande START WITH 1 INCREMENT BY 1 NOCACHE;
-CREATE OR REPLACE TRIGGER trigger_commande_id
+CREATE OR REPLACE TRIGGER TR_commande_id
 BEFORE INSERT ON Commande
 FOR EACH ROW
 BEGIN
@@ -479,7 +479,7 @@ END;
 /
 
 CREATE SEQUENCE seq_recommandation START WITH 1 INCREMENT BY 1 NOCACHE;
-CREATE OR REPLACE TRIGGER trigger_recommandation_id
+CREATE OR REPLACE TRIGGER TR_recommandation_id
 BEFORE INSERT ON Recommandation
 FOR EACH ROW
 BEGIN
@@ -492,7 +492,7 @@ END;
 
 -- On interdit aussi l'édition des Id des tables :
 
-CREATE OR REPLACE TRIGGER trigger_ModifIdInterdite_ClientId
+CREATE OR REPLACE TRIGGER TR_ModifInt_ClientId
 BEFORE UPDATE OF ClientId ON Client
 FOR EACH ROW
 BEGIN
@@ -505,7 +505,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_ModifIdInterdite_FournisseurId
+CREATE OR REPLACE TRIGGER TR_ModifInt_FournisseurId
 BEFORE UPDATE OF FournisseurId ON Fournisseur
 FOR EACH ROW
 BEGIN
@@ -518,7 +518,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_ModifIdInterdite_CategorieId
+CREATE OR REPLACE TRIGGER TR_ModifInt_CategorieId
 BEFORE UPDATE OF CategorieId ON Categorie
 FOR EACH ROW
 BEGIN
@@ -531,7 +531,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_ModifIdInterdite_SousCategorieId
+CREATE OR REPLACE TRIGGER TR_ModifInt_SousCategorieId
 BEFORE UPDATE OF SousCategorieId ON SousCategorie
 FOR EACH ROW
 BEGIN
@@ -544,7 +544,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_ModifIdInterdite_CSCId
+CREATE OR REPLACE TRIGGER TR_ModifInt_CSCId
 BEFORE UPDATE OF CSCId ON CategorieSousCategorie
 FOR EACH ROW
 BEGIN
@@ -557,7 +557,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_ModifIdInterdite_ProduitId
+CREATE OR REPLACE TRIGGER TR_ModifInt_ProduitId
 BEFORE UPDATE OF ProduitId ON Produit
 FOR EACH ROW
 BEGIN
@@ -570,7 +570,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_ModifIdInterdite_CommandeId
+CREATE OR REPLACE TRIGGER TR_ModifInt_CommandeId
 BEFORE UPDATE OF CommandeId ON Commande
 FOR EACH ROW
 BEGIN
@@ -583,7 +583,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_ModifIdInterdite_RecommandationId
+CREATE OR REPLACE TRIGGER TR_ModifInt_RecommandationId
 BEFORE UPDATE OF RecommandationId ON Recommandation
 FOR EACH ROW
 BEGIN
@@ -596,7 +596,7 @@ BEGIN
 END;
 /
 
-CREATE OR REPLACE TRIGGER trigger_ModifIdInterdite_PC_PK
+CREATE OR REPLACE TRIGGER TR_ModifInt_PC_PK
 BEFORE UPDATE OF CommandeId, ProduitId ON ProduitCommande
 FOR EACH ROW
 BEGIN
