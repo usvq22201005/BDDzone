@@ -6,7 +6,8 @@ select * from client ;
 select * from commande ;
 select * from SouhaiteAcheter ;
 select * from produitcommande ;
-select * from categorie cat join souscategorie scat
+select * from categorie ;
+cat join souscategorie scat
 on cat.categorieid = scat.categorieid;
 
 select * from produit ;
