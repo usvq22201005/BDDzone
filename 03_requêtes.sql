@@ -1,6 +1,8 @@
 -- Pour me faciliter l'existence dans la construction des 27 requêtes
 -- j'ai crée des vues intermédiaires ... beaucoup de vues.
 -- la plus importante V_Vente_Client surtout pour les dernières requêtes.
+-- Arnaud
+
 
 /*                  Panier et Favoris (1)
  Requête n°1 Quels sont les produits que souhaite acheter un client donné
